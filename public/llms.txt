@@ -1,0 +1,45 @@
+# NuStack Marketing Engine
+
+> Patient Acquisition Platform for multi-location men's health clinics
+
+NuStack Marketing Engine is a proprietary PPC and marketing automation SaaS platform that auto-generates location landing pages, captures leads with 60-second SMS response, runs full 7-day nurture sequences, automates Google Business Profile management, and provides closed-loop attribution from ad spend to booked appointment to clinic revenue.
+
+## Core Features
+- Location landing page factory (auto-generated, A/B tested, GCLID-captured)
+- 60-second SMS lead response via Twilio + Inngest
+- 7-day automated nurture sequence (SMS + email)
+- Google Business Profile automation (daily sync, AI review responses, weekly posts)
+- Multi-platform campaign factory (Google Ads + Meta Ads, feature-flagged)
+- Closed-loop attribution dashboard (lead → booked → showed → revenue)
+- Budget pacing engine (every 4 hours)
+- HIPAA-compliant architecture (server-side CAPI only, no pixels on health pages)
+
+## Tech Stack
+- Next.js 16 (App Router)
+- Supabase (PostgreSQL + RLS)
+- Clerk (multi-role auth)
+- Twilio (SMS)
+- Resend (email)
+- Inngest (background jobs)
+- Claude claude-sonnet-4-6 (ad copy, review responses, insights)
+- PostHog (A/B testing)
+- Recharts (analytics)
+
+## Compliance
+- No Meta Pixel or Google Tag on health-context pages
+- All conversions via server-side CAPI (offline conversion queue)
+- No PHI sent to Google or Meta APIs
+- GCLID cookie flow for attribution without PII exposure
+- All ad copy passes compliance checker before API submission
+
+## Dashboard
+- /dashboard — overview
+- /dashboard/locations — location management
+- /dashboard/leads — lead pipeline
+- /dashboard/analytics — attribution reporting
+- /dashboard/campaigns — campaign performance
+- /dashboard/reviews — GBP review queue
+- /dashboard/reports — client-facing reports
+- /dashboard/settings — integrations
+
+Built by NuStack Digital Ventures — https://nustack.digital
