@@ -1,7 +1,11 @@
 const META_BASE = 'https://graph.facebook.com/v19.0'
 
 function getSystemToken(): string {
-  return process.env.META_SYSTEM_USER_TOKEN!
+  // Uses META_USER_ACCESS_TOKEN once Meta OAuth connect flow is complete
+  // Set this in Vercel env after connecting via /dashboard/settings/meta
+  const token = process.env.META_USER_ACCESS_TOKEN
+  if (!token) throw new Error('META_USER_ACCESS_TOKEN not set — connect Meta account first')
+  return token
 }
 
 export async function createCampaign(

@@ -2,7 +2,11 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
+import { updateLeadStatus } from '../actions'
 import type { Lead, NurtureEvent } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -44,8 +48,15 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const nurtureEvents = (nurtureRes.data ?? []) as NurtureEvent[]
   const attribution = attrRes.data
 
+  const LEAD_STATUSES = ['new', 'contacted', 'booked', 'showed', 'no_showed', 'disqualified'] as const
+
   return (
     <div className="p-8 space-y-6 max-w-4xl">
+      <Link href="/dashboard/leads" className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+        <ArrowLeft className="h-4 w-4" />
+        Back to Leads
+      </Link>
+
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -57,6 +68,28 @@ export default async function LeadDetailPage({ params }: PageProps) {
         </div>
         <Badge variant={statusColors[lead.status] ?? 'secondary'}>{lead.status}</Badge>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Update Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {LEAD_STATUSES.map((s) => (
+              <form key={s} action={updateLeadStatus.bind(null, lead.id, s)}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant={lead.status === s ? 'default' : 'outline'}
+                  className="capitalize"
+                >
+                  {s.replace('_', ' ')}
+                </Button>
+              </form>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>

@@ -20,7 +20,6 @@ export async function createAttributionRecord(
     .single()
 
   if (error) {
-    console.error('Error creating attribution record:', error)
     return null
   }
 
@@ -42,7 +41,7 @@ export async function updateAttributionRecord(
     .eq('lead_id', leadId)
 
   if (error) {
-    console.error('Error updating attribution record:', error)
+    // non-fatal — attribution update failure does not block lead flow
   }
 }
 
