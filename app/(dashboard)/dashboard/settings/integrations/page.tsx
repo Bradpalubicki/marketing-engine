@@ -77,17 +77,17 @@ const integrations = [
   },
   {
     name: 'Google Ads API',
-    description: 'Standard developer token required (2–6 week Google approval). Apply via Google Ads Manager Account.',
+    description: 'Developer token issued (Explorer Access). Basic Access application submitted — review ~3 business days.',
     status: 'pending' as const,
     envKey: 'GOOGLE_ADS_DEVELOPER_TOKEN',
-    action: { label: 'Apply for Standard Token', href: 'https://ads.google.com/home/tools/manager-accounts/', external: true },
+    action: { label: 'Check API Center', href: 'https://ads.google.com/aw/apicenter', external: true },
   },
   {
     name: 'Meta Ads API',
-    description: 'Advanced Access requires Meta Business Verification (2–4 weeks). System User token needed.',
+    description: 'App created (ID: 772426605937002). Business Verification in review (~2 days). Connect via OAuth once verified.',
     status: 'pending' as const,
-    envKey: 'META_SYSTEM_USER_TOKEN',
-    action: { label: 'Submit Business Verification', href: 'https://business.facebook.com/settings/security', external: true },
+    envKey: 'META_APP_ID',
+    action: { label: 'Connect Meta Account', href: '/dashboard/settings/meta' },
   },
 ]
 
