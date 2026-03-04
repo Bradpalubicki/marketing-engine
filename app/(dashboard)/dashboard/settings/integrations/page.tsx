@@ -1,123 +1,165 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { CheckCircle, Clock, ExternalLink, AlertTriangle } from 'lucide-react'
 
-interface Integration {
-  name: string
-  description: string
-  status: 'connected' | 'not_configured' | 'feature_flagged'
-  envKey?: string
+function statusBadge(status: 'live' | 'pending' | 'action_required' | 'blocked') {
+  const map = {
+    live: { label: 'Live', className: 'bg-green-100 text-green-700 border-green-200' },
+    pending: { label: 'Pending Approval', className: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+    action_required: { label: 'Action Required', className: 'bg-orange-100 text-orange-700 border-orange-200' },
+    blocked: { label: 'Blocked', className: 'bg-red-100 text-red-700 border-red-200' },
+  }
+  const s = map[status]
+  return (
+    <span className={`text-xs font-medium px-2 py-1 rounded-full border ${s.className}`}>
+      {s.label}
+    </span>
+  )
 }
 
-function getIntegrations(): Integration[] {
-  return [
-    {
-      name: 'Supabase',
-      description: 'Database and row-level security',
-      status: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'connected' : 'not_configured',
-    },
-    {
-      name: 'Clerk',
-      description: 'Authentication and user management',
-      status: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? 'connected' : 'not_configured',
-    },
-    {
-      name: 'Twilio',
-      description: 'SMS nurture sequences',
-      status: process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID !== 'placeholder' ? 'connected' : 'not_configured',
-      envKey: 'TWILIO_ACCOUNT_SID',
-    },
-    {
-      name: 'Resend',
-      description: 'Email delivery',
-      status: process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_placeholder' ? 'connected' : 'not_configured',
-      envKey: 'RESEND_API_KEY',
-    },
-    {
-      name: 'Inngest',
-      description: 'Background job orchestration',
-      status: process.env.INNGEST_EVENT_KEY && process.env.INNGEST_EVENT_KEY !== 'placeholder' ? 'connected' : 'not_configured',
-      envKey: 'INNGEST_EVENT_KEY',
-    },
-    {
-      name: 'Google Ads',
-      description: 'Search campaign management and offline conversions',
-      status: process.env.FEATURE_GOOGLE_ADS === 'true' ? 'connected' : 'feature_flagged',
-      envKey: 'FEATURE_GOOGLE_ADS',
-    },
-    {
-      name: 'Meta Ads',
-      description: 'Facebook/Instagram lead campaigns',
-      status: process.env.FEATURE_META_ADS === 'true' ? 'connected' : 'feature_flagged',
-      envKey: 'FEATURE_META_ADS',
-    },
-    {
-      name: 'Google Business Profile',
-      description: 'Review management and post scheduling',
-      status: process.env.GBP_CLIENT_ID ? 'connected' : 'not_configured',
-      envKey: 'GBP_CLIENT_ID',
-    },
-    {
-      name: 'CallRail',
-      description: 'Call tracking and lead attribution',
-      status: process.env.CALLRAIL_API_KEY ? 'connected' : 'not_configured',
-      envKey: 'CALLRAIL_API_KEY',
-    },
-    {
-      name: 'Claude AI',
-      description: 'Ad copy generation and GBP post writing',
-      status: process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'sk-ant-placeholder' ? 'connected' : 'not_configured',
-      envKey: 'ANTHROPIC_API_KEY',
-    },
-  ]
-}
-
-const statusIcons = {
-  connected: <CheckCircle2 className="h-5 w-5 text-green-500" />,
-  not_configured: <XCircle className="h-5 w-5 text-gray-300" />,
-  feature_flagged: <Clock className="h-5 w-5 text-amber-500" />,
-}
-
-const statusBadges = {
-  connected: <Badge variant="success">Connected</Badge>,
-  not_configured: <Badge variant="secondary">Not configured</Badge>,
-  feature_flagged: <Badge variant="warning">Flag disabled</Badge>,
-}
+const integrations = [
+  {
+    name: 'Clerk Auth',
+    description: 'Multi-role authentication (super_admin, org_admin, location_manager, viewer)',
+    status: 'live' as const,
+    envKey: 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+  },
+  {
+    name: 'Supabase',
+    description: 'PostgreSQL database with RLS — 17 tables, HIPAA-isolated leads table',
+    status: 'live' as const,
+    envKey: 'NEXT_PUBLIC_SUPABASE_URL',
+  },
+  {
+    name: 'Twilio SMS',
+    description: 'NuStack master account — 60-second speed-to-lead SMS + 7-day nurture',
+    status: 'live' as const,
+    envKey: 'TWILIO_ACCOUNT_SID',
+  },
+  {
+    name: 'Resend Email',
+    description: 'NuStack shared key — email nurture step at 2 hours post-lead',
+    status: 'live' as const,
+    envKey: 'RESEND_API_KEY',
+  },
+  {
+    name: 'Inngest',
+    description: '9 background functions — nurture, GBP sync, budget pacing, insights',
+    status: 'live' as const,
+    envKey: 'INNGEST_EVENT_KEY',
+  },
+  {
+    name: 'Anthropic Claude',
+    description: 'claude-sonnet-4-6 — GBP review responses, post generation, insights',
+    status: 'live' as const,
+    envKey: 'ANTHROPIC_API_KEY',
+  },
+  {
+    name: 'PostHog',
+    description: 'A/B testing on landing pages + product analytics',
+    status: 'live' as const,
+    envKey: 'NEXT_PUBLIC_POSTHOG_KEY',
+  },
+  {
+    name: 'Google Business Profile',
+    description: 'Daily sync, AI review responses, weekly posts. OAuth credentials set — refresh token needed.',
+    status: 'action_required' as const,
+    envKey: 'GBP_REFRESH_TOKEN',
+    action: { label: 'Connect GBP', href: '/dashboard/settings/gbp' },
+  },
+  {
+    name: 'CallRail',
+    description: 'HIPAA Healthcare plan required. Call tracking → lead creation → nurture sequence.',
+    status: 'action_required' as const,
+    envKey: 'CALLRAIL_API_KEY',
+    action: { label: 'Sign up for CallRail Healthcare', href: 'https://www.callrail.com/healthcare/', external: true },
+  },
+  {
+    name: 'Google Ads API',
+    description: 'Standard developer token required (2–6 week Google approval). Apply via Google Ads Manager Account.',
+    status: 'pending' as const,
+    envKey: 'GOOGLE_ADS_DEVELOPER_TOKEN',
+    action: { label: 'Apply for Standard Token', href: 'https://ads.google.com/home/tools/manager-accounts/', external: true },
+  },
+  {
+    name: 'Meta Ads API',
+    description: 'Advanced Access requires Meta Business Verification (2–4 weeks). System User token needed.',
+    status: 'pending' as const,
+    envKey: 'META_SYSTEM_USER_TOKEN',
+    action: { label: 'Submit Business Verification', href: 'https://business.facebook.com/settings/security', external: true },
+  },
+]
 
 export default function IntegrationsPage() {
-  const integrations = getIntegrations()
-  const connected = integrations.filter(i => i.status === 'connected').length
-
   return (
     <div className="p-8 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Integrations</h1>
-        <p className="text-gray-500 mt-1">{connected} of {integrations.length} integrations active</p>
+        <p className="text-gray-500 mt-1">All platform connections and their status</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {integrations.map((integration) => (
-          <Card key={integration.name}>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {statusIcons[integration.status]}
-                  <CardTitle className="text-base">{integration.name}</CardTitle>
+      <div className="grid gap-4">
+        {integrations.map((integration) => {
+          const isSet = !!process.env[integration.envKey]
+          return (
+            <Card key={integration.name}>
+              <CardContent className="pt-4 pb-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-900">{integration.name}</span>
+                      {statusBadge(isSet && integration.status !== 'action_required' ? 'live' : integration.status)}
+                    </div>
+                    <p className="text-sm text-gray-500">{integration.description}</p>
+                    {!isSet && (
+                      <p className="text-xs text-amber-600 font-mono">
+                        Missing: <code>{integration.envKey}</code>
+                      </p>
+                    )}
+                  </div>
+                  {integration.action && (
+                    <div className="flex-shrink-0">
+                      {integration.action.external ? (
+                        <a href={integration.action.href} target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm">
+                            <ExternalLink className="h-3 w-3 mr-1.5" />
+                            {integration.action.label}
+                          </Button>
+                        </a>
+                      ) : (
+                        <a href={integration.action.href}>
+                          <Button size="sm">{integration.action.label}</Button>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
-                {statusBadges[integration.status]}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">{integration.description}</p>
-              {integration.envKey && integration.status !== 'connected' && (
-                <p className="text-xs text-gray-400 mt-1 font-mono">
-                  {integration.envKey}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
+
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex gap-3">
+            <Clock className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-medium text-blue-900">Pending approvals timeline</p>
+              <p className="text-sm text-blue-700">
+                Google Ads Standard token: 2–6 weeks after application. 
+                Meta Business Verification: 2–4 weeks. 
+                CallRail Healthcare: same-day setup after signup.
+              </p>
+              <p className="text-sm text-blue-700 mt-2">
+                When Google Ads is approved, set <code className="bg-blue-100 px-1 rounded">FEATURE_GOOGLE_ADS=true</code> in Vercel env vars.
+                For Meta, set <code className="bg-blue-100 px-1 rounded">FEATURE_META_ADS=true</code>.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
