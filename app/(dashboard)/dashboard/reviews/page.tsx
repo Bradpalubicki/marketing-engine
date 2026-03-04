@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase'
-import { ReviewQueue } from '@/components/dashboard/ReviewQueue'
+import { ReviewQueueWrapper } from '@/components/dashboard/ReviewQueueWrapper'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ReviewResponse } from '@/types'
 
@@ -27,7 +27,7 @@ export default async function ReviewsPage() {
           <CardTitle>Pending Reviews</CardTitle>
         </CardHeader>
         <CardContent>
-          <ReviewQueue reviews={reviews} />
+          <ReviewQueueWrapper reviews={reviews} />
         </CardContent>
       </Card>
     </div>

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CampaignTable } from '@/components/dashboard/CampaignTable'
 import { LeadTable } from '@/components/dashboard/LeadTable'
+import { GBPLinkCard } from '@/components/dashboard/GBPLinkCard'
 import { MapPin, Phone, Globe, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -121,6 +122,8 @@ export default async function LocationDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
+
+      <GBPLinkCard locationId={location.id} currentGbpLocationId={location.gbp_location_id ?? null} />
 
       <Card>
         <CardHeader>
