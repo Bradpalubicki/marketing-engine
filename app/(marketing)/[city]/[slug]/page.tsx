@@ -98,12 +98,16 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
   const cookieStore = await cookies()
   const gclid = sp.gclid ?? null
   const fbclid = sp.fbclid ?? null
+  const msclkid = sp.msclkid ?? null
 
   if (gclid) {
     cookieStore.set('_gclid', gclid, { maxAge: 90 * 24 * 60 * 60, path: '/' })
   }
   if (fbclid) {
     cookieStore.set('_fbclid', fbclid, { maxAge: 90 * 24 * 60 * 60, path: '/' })
+  }
+  if (msclkid) {
+    cookieStore.set('_msclkid', msclkid, { maxAge: 90 * 24 * 60 * 60, path: '/' })
   }
   if (sp.utm_source) {
     cookieStore.set('_utm_source', sp.utm_source, { maxAge: 30 * 24 * 60 * 60, path: '/' })

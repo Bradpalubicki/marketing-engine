@@ -13,6 +13,7 @@ const leadCreateSchema = z.object({
   landing_page_id: z.string().uuid().optional(),
   gclid: z.string().optional().nullable(),
   fbclid: z.string().optional().nullable(),
+  msclkid: z.string().optional().nullable(),
 })
 
 export async function POST(req: NextRequest) {
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
 
     const gclid = data.gclid ?? cookies['_gclid'] ?? null
     const fbclid = data.fbclid ?? cookies['_fbclid'] ?? null
+    const msclkid = data.msclkid ?? cookies['_msclkid'] ?? null
     const fbp = cookies['_fbp'] ?? null
 
     const utmSource = cookies['_utm_source'] ?? null
@@ -61,6 +63,7 @@ export async function POST(req: NextRequest) {
         phone: data.phone,
         gclid,
         fbclid,
+        msclkid,
         fbp,
         utm_source: utmSource,
         utm_medium: utmMedium,
@@ -75,7 +78,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create lead' }, { status: 500 })
     }
 
-    await createAttributionRecord(lead.id, data.location_id, gclid ? 'google' : fbclid ? 'meta' : null, null)
+    const leadSource = gclid ? 'google' : msclkid ? 'microsoft' : fbclid ? 'meta' : null
+    await createAttributionRecord(lead.id, data.location_id, leadSource, null)
 
     await inngest.send({
       name: 'lead/created',

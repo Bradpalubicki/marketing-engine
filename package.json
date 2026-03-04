@@ -46,6 +46,7 @@
     "dotenv": "^16.6.1",
     "eslint": "^9.39.3",
     "eslint-config-next": "^16.1.6",
+    "md-to-pdf": "^5.2.5",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",

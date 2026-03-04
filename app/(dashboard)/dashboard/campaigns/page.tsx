@@ -14,6 +14,7 @@ export default async function CampaignsPage() {
   const campaigns = (data ?? []) as Campaign[]
   const googleEnabled = process.env.FEATURE_GOOGLE_ADS === 'true'
   const metaEnabled = process.env.FEATURE_META_ADS === 'true'
+  const microsoftEnabled = process.env.FEATURE_MICROSOFT_ADS === 'true'
 
   return (
     <div className="p-8 space-y-6">
@@ -36,6 +37,18 @@ export default async function CampaignsPage() {
           <div>
             <p className="font-medium text-indigo-900">Meta Ads not connected</p>
             <p className="text-sm text-indigo-700 mt-0.5">Set FEATURE_META_ADS=true and add your Meta credentials to activate.</p>
+          </div>
+        </div>
+      )}
+
+      {!microsoftEnabled && (
+        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4 flex items-center justify-between">
+          <div>
+            <p className="font-medium text-cyan-900">Microsoft Advertising (Bing) not connected</p>
+            <p className="text-sm text-cyan-700 mt-0.5">
+              Set FEATURE_MICROSOFT_ADS=true and complete Azure App Registration OAuth to activate.
+              Agency MCC: G120QEFZ.
+            </p>
           </div>
         </div>
       )}

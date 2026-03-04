@@ -89,6 +89,13 @@ const integrations = [
     envKey: 'META_APP_ID',
     action: { label: 'Connect Meta Account', href: '/dashboard/settings/meta' },
   },
+  {
+    name: 'Microsoft Advertising (Bing Ads)',
+    description: 'Search campaigns on Bing/Edge. Agency MCC: G120QEFZ. Blocked on Azure App Registration OAuth.',
+    status: 'action_required' as const,
+    envKey: 'MICROSOFT_ADS_DEVELOPER_TOKEN',
+    action: { label: 'Register Azure App', href: 'https://portal.azure.com', external: true },
+  },
 ]
 
 export default function IntegrationsPage() {
