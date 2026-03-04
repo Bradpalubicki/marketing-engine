@@ -3,7 +3,7 @@
 import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, MapPin, Users, TrendingUp, Megaphone, Star, FileText, Settings } from 'lucide-react'
+import { BarChart3, MapPin, Users, TrendingUp, Megaphone, Star, FileText, Settings, FileImage } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/dashboard/analytics', label: 'Analytics', icon: TrendingUp, exact: false },
   { href: '/dashboard/campaigns', label: 'Campaigns', icon: Megaphone, exact: false },
   { href: '/dashboard/reviews', label: 'Reviews', icon: Star, exact: false },
+  { href: '/dashboard/posts', label: 'Posts', icon: FileImage, exact: false },
   { href: '/dashboard/reports', label: 'Reports', icon: FileText, exact: false },
   { href: '/dashboard/settings/integrations', label: 'Settings', icon: Settings, exact: false },
 ]

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { CampaignTable } from '@/components/dashboard/CampaignTable'
 import { LeadTable } from '@/components/dashboard/LeadTable'
 import { GBPLinkCard } from '@/components/dashboard/GBPLinkCard'
+import { LocationStatusCard } from '@/components/dashboard/LocationStatusCard'
 import { MapPin, Phone, Globe, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -79,7 +80,9 @@ export default async function LocationDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <LocationStatusCard locationId={location.id} currentStatus={location.status} />
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-gray-500">Campaign Factory</CardTitle>

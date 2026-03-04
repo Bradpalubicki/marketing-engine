@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "npx ts-node -r tsconfig-paths/register --project tsconfig.seed.json scripts/seed-demo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -42,9 +43,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^16.6.1",
     "eslint": "^9.39.3",
     "eslint-config-next": "^16.1.6",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5"
   }
 }
