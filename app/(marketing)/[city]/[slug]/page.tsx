@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getLandingPageVariant, type ABVariant } from '@/lib/posthog-server'
 import { LocationHero } from '@/components/landing/LocationHero'
 import { LeadForm } from '@/components/landing/LeadForm'
 import { SocialProof } from '@/components/landing/SocialProof'
@@ -41,6 +42,26 @@ const SERVICES = [
   { name: "Primary Care", desc: "Preventive care, annual physicals, and chronic disease management." },
   { name: "Wellness Programs", desc: "Personalized wellness plans for weight, sleep, and performance." },
 ]
+
+// Variant-specific content overrides
+function getVariantContent(variant: ABVariant, loc: Location) {
+  if (variant === 'B') {
+    return {
+      headline: 'Reclaim Your Energy. Reclaim Your Life.',
+      subheadline: `Expert men's health care in ${loc.city}, ${loc.state}. Your first step starts today.`,
+      ctaOverride: 'Book Your Free Consultation Today',
+    }
+  }
+  if (variant === 'C') {
+    return {
+      headline: `Men's Health Experts in ${loc.city}, ${loc.state}`,
+      subheadline: 'Personalized care to help you feel your best. Book your free consultation today.',
+      ctaOverride: null,
+      socialProofBanner: true,
+    }
+  }
+  return { headline: null, subheadline: null, ctaOverride: null, socialProofBanner: false }
+}
 
 export default async function LandingPage({ params, searchParams }: PageProps) {
   const { city, slug } = await params
@@ -116,6 +137,24 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
     cookieStore.set('_utm_campaign', sp.utm_campaign, { maxAge: 30 * 24 * 60 * 60, path: '/' })
   }
 
+  // A/B testing — get or assign distinct ID
+  let distinctId = cookieStore.get('_ph_distinct_id')?.value
+  if (!distinctId) {
+    distinctId = crypto.randomUUID()
+    cookieStore.set('_ph_distinct_id', distinctId, { maxAge: 365 * 24 * 60 * 60, path: '/' })
+  }
+
+  const variant = await getLandingPageVariant(distinctId)
+  const variantContent = getVariantContent(variant, loc)
+
+  // Apply variant overrides to landing page content
+  const displayLandingPage: LandingPage = {
+    ...landingPage,
+    headline: variantContent.headline ?? landingPage.headline,
+    subheadline: variantContent.subheadline ?? landingPage.subheadline,
+    ab_variant: variant,
+  }
+
   const localBusinessSchema = {
     '@context': 'https://schema.org',
     '@type': ['LocalBusiness', 'MedicalClinic'],
@@ -152,7 +191,14 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
       />
 
       <div className="min-h-screen bg-white">
-        <LocationHero location={loc} landingPage={landingPage} gbpProfile={gbpProfile} />
+        {/* Variant C: Social proof banner above fold */}
+        {variantContent.socialProofBanner && (
+          <div className="bg-blue-900 text-white text-center py-2 px-4 text-sm font-medium">
+            2,400+ Men Treated | 4.9&#9733; Average Rating | Same-Day Appointments Available
+          </div>
+        )}
+
+        <LocationHero location={loc} landingPage={displayLandingPage} gbpProfile={gbpProfile} />
 
         <section className="py-16 px-4">
           <div className="max-w-5xl mx-auto">
@@ -178,7 +224,8 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
                 <LeadForm
                   locationId={loc.id}
                   landingPageId={landingPage.id}
-                  ctaText={landingPage.cta_text}
+                  ctaText={variantContent.ctaOverride ?? landingPage.cta_text}
+                  abVariant={variant}
                 />
               </div>
             </div>
@@ -215,8 +262,8 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
             <div className="flex items-start gap-3 text-gray-600 mt-4">
               <Clock className="h-5 w-5 mt-0.5 text-blue-500" />
               <div>
-                <p>Mon–Fri: 8:00 AM – 6:00 PM</p>
-                <p>Sat: 9:00 AM – 2:00 PM</p>
+                <p>Mon&ndash;Fri: 8:00 AM &ndash; 6:00 PM</p>
+                <p>Sat: 9:00 AM &ndash; 2:00 PM</p>
               </div>
             </div>
           </div>

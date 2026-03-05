@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { format } from 'date-fns'
+import { ResendSMSButton } from './ResendSMSButton'
+import { format, startOfMonth } from 'date-fns'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Target, DollarSign } from 'lucide-react'
 import { updateLeadStatus } from '../actions'
 import type { Lead, NurtureEvent } from '@/types'
 
@@ -48,6 +49,50 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const nurtureEvents = (nurtureRes.data ?? []) as NurtureEvent[]
   const attribution = attrRes.data
 
+  // Campaign attribution
+  let campaignName: string | null = null
+  if (lead.utm_campaign) {
+    const { data: campaign } = await supabaseAdmin
+      .from('campaigns')
+      .select('name, platform')
+      .ilike('name', `%${lead.utm_campaign}%`)
+      .limit(1)
+      .single()
+    campaignName = campaign ? `${campaign.name} (${campaign.platform})` : null
+  }
+
+  // CPL context for this location this month
+  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
+  const [locationLeadsRes, locationSpendRes] = await Promise.all([
+    supabaseAdmin
+      .from('leads')
+      .select('id')
+      .eq('location_id', lead.location_id)
+      .gte('created_at', monthStart),
+    supabaseAdmin
+      .from('spend_records')
+      .select('spend')
+      .eq('location_id', lead.location_id)
+      .gte('spend_date', monthStart),
+  ])
+
+  const monthLeadsCount = locationLeadsRes.data?.length ?? 0
+  const monthSpend = locationSpendRes.data?.reduce((s, r) => s + (r.spend ?? 0), 0) ?? 0
+  const locationCPL = monthLeadsCount > 0 && monthSpend > 0
+    ? `$${(monthSpend / monthLeadsCount).toFixed(2)}`
+    : null
+
+  // Attribution source label
+  const attributionSource = lead.gclid
+    ? 'Google Ads'
+    : lead.fbclid
+    ? 'Meta Ads'
+    : lead.msclkid
+    ? 'Microsoft Ads'
+    : lead.utm_source
+    ? lead.utm_source
+    : 'Organic / Direct'
+
   const LEAD_STATUSES = ['new', 'contacted', 'booked', 'showed', 'no_showed', 'disqualified'] as const
 
   return (
@@ -63,7 +108,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             {lead.first_name} {lead.last_name ?? ''}
           </h1>
           <p className="text-gray-500 mt-1">
-            Lead #{lead.id.slice(0, 8)} · Created {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}
+            Lead #{lead.id.slice(0, 8)} &middot; Created {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}
           </p>
         </div>
         <Badge variant={statusColors[lead.status] ?? 'secondary'}>{lead.status}</Badge>
@@ -120,23 +165,35 @@ export default async function LeadDetailPage({ params }: PageProps) {
             {lead.nurture_paused && (
               <Badge variant="warning">Nurture Paused</Badge>
             )}
+            {lead.phone && (
+              <div className="pt-2">
+                <ResendSMSButton leadId={lead.id} />
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Attribution</CardTitle>
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-blue-500" />
+              <CardTitle>Attribution</CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {lead.utm_source && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">UTM Source</span>
-                <span>{lead.utm_source}</span>
-              </div>
-            )}
-            {lead.utm_campaign && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Source</span>
+              <span className="font-medium">{attributionSource}</span>
+            </div>
+            {campaignName && (
               <div className="flex justify-between">
                 <span className="text-gray-500">Campaign</span>
+                <span>{campaignName}</span>
+              </div>
+            )}
+            {lead.utm_campaign && !campaignName && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">UTM Campaign</span>
                 <span>{lead.utm_campaign}</span>
               </div>
             )}
@@ -175,6 +232,19 @@ export default async function LeadDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {locationCPL && (
+        <Card className="border-blue-100 bg-blue-50">
+          <CardContent className="p-4 flex items-start gap-3">
+            <DollarSign className="h-4 w-4 text-blue-600 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <strong>Spend Context:</strong> This lead came from {attributionSource}.
+              Average cost per lead for this location this month: <strong>{locationCPL}</strong>
+              {' '}(based on {monthLeadsCount} leads and ${monthSpend.toFixed(0)} spend).
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

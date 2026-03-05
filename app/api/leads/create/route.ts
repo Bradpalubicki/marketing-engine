@@ -14,6 +14,7 @@ const leadCreateSchema = z.object({
   gclid: z.string().optional().nullable(),
   fbclid: z.string().optional().nullable(),
   msclkid: z.string().optional().nullable(),
+  ab_variant: z.enum(['A', 'B', 'C']).optional().nullable(),
 })
 
 export async function POST(req: NextRequest) {
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
         utm_medium: utmMedium,
         utm_campaign: utmCampaign,
         landing_page_id: data.landing_page_id ?? null,
+        ab_variant: data.ab_variant ?? null,
         status: 'new',
       })
       .select()

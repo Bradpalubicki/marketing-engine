@@ -22,9 +22,10 @@ interface LeadFormProps {
   locationId: string
   landingPageId: string
   ctaText?: string
+  abVariant?: string | null
 }
 
-export function LeadForm({ locationId, landingPageId, ctaText = 'Book Your Free Consultation' }: LeadFormProps) {
+export function LeadForm({ locationId, landingPageId, ctaText = 'Book Your Free Consultation', abVariant }: LeadFormProps) {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [gclid, setGclid] = useState<string | null>(null)
@@ -63,6 +64,7 @@ export function LeadForm({ locationId, landingPageId, ctaText = 'Book Your Free 
           landing_page_id: landingPageId,
           gclid,
           fbclid,
+          ab_variant: abVariant ?? null,
         }),
       })
 

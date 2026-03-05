@@ -44,6 +44,19 @@ export interface Location {
   monthly_ad_budget: number | null
   status: LocationStatus
   campaign_factory_status: string
+  weekly_report_enabled: boolean | null
+  campaign_factory_notes: string | null
+  created_at: string
+}
+
+export interface AIInsightRecord {
+  id: string
+  org_id: string | null
+  location_id: string | null
+  week_start: string
+  week_end: string
+  insights_text: string
+  metrics: Record<string, unknown> | null
   created_at: string
 }
 
@@ -126,7 +139,9 @@ export interface Lead {
   utm_term: string | null
   gclid: string | null
   fbclid: string | null
+  msclkid: string | null
   fbp: string | null
+  ab_variant: ABVariant | null
   landing_page_id: string | null
   callrail_call_id: string | null
   first_name: string | null

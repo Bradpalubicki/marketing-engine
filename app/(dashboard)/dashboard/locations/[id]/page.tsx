@@ -6,10 +6,11 @@ import { CampaignTable } from '@/components/dashboard/CampaignTable'
 import { LeadTable } from '@/components/dashboard/LeadTable'
 import { GBPLinkCard } from '@/components/dashboard/GBPLinkCard'
 import { LocationStatusCard } from '@/components/dashboard/LocationStatusCard'
+import { SpendSection } from './SpendSection'
 import { MapPin, Phone, Globe, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import type { Location, Campaign, Lead, GBPProfile } from '@/types'
+import type { Location, Campaign, Lead, GBPProfile, SpendRecord } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,11 +28,12 @@ const statusColors: Record<string, 'default' | 'success' | 'warning' | 'secondar
 export default async function LocationDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  const [locationRes, campaignsRes, leadsRes, gbpRes] = await Promise.all([
+  const [locationRes, campaignsRes, leadsRes, gbpRes, spendRes] = await Promise.all([
     supabaseAdmin.from('locations').select('*').eq('id', id).single(),
     supabaseAdmin.from('campaigns').select('*').eq('location_id', id).order('created_at', { ascending: false }),
     supabaseAdmin.from('leads').select('*').eq('location_id', id).order('created_at', { ascending: false }).limit(10),
     supabaseAdmin.from('gbp_profiles').select('*').eq('location_id', id).single(),
+    supabaseAdmin.from('spend_records').select('id, platform, spend_date, spend, clicks, impressions').eq('location_id', id).is('campaign_id', null).order('spend_date', { ascending: false }).limit(10),
   ])
 
   if (locationRes.error || !locationRes.data) {
@@ -42,6 +44,7 @@ export default async function LocationDetailPage({ params }: PageProps) {
   const campaigns = (campaignsRes.data ?? []) as Campaign[]
   const leads = (leadsRes.data ?? []) as Lead[]
   const gbpProfile = gbpRes.data as GBPProfile | null
+  const spendRecords = (spendRes.data ?? []) as SpendRecord[]
 
   return (
     <div className="p-8 space-y-8">
@@ -150,6 +153,8 @@ export default async function LocationDetailPage({ params }: PageProps) {
           <LeadTable leads={leads} />
         </CardContent>
       </Card>
+
+      <SpendSection locationId={location.id} initialRecords={spendRecords} />
     </div>
   )
 }

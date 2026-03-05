@@ -3,24 +3,39 @@ import { MetricCard } from '@/components/dashboard/MetricCard'
 import { LeadTable } from '@/components/dashboard/LeadTable'
 import { LocationCard } from '@/components/dashboard/LocationCard'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, MapPin, TrendingUp, CheckCircle } from 'lucide-react'
+import { Users, MapPin, TrendingUp, CheckCircle, Lightbulb } from 'lucide-react'
 import { format, startOfMonth } from 'date-fns'
 import type { Lead, Location } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
+interface AIInsight {
+  id: string
+  location_id: string | null
+  week_start: string
+  week_end: string
+  insights_text: string
+  created_at: string
+}
+
 export default async function DashboardPage() {
   const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
 
-  const [locationsRes, leadsRes, recentLeadsRes] = await Promise.all([
+  const [locationsRes, leadsRes, recentLeadsRes, insightsRes] = await Promise.all([
     supabaseAdmin.from('locations').select('*').order('created_at', { ascending: false }),
     supabaseAdmin.from('leads').select('status, location_id').gte('created_at', monthStart),
     supabaseAdmin.from('leads').select('*').order('created_at', { ascending: false }).limit(10),
+    supabaseAdmin
+      .from('ai_insights')
+      .select('id, location_id, week_start, week_end, insights_text, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10),
   ])
 
   const locations = (locationsRes.data ?? []) as Location[]
   const leads = leadsRes.data ?? []
   const recentLeads = (recentLeadsRes.data ?? []) as Lead[]
+  const allInsights = (insightsRes.data ?? []) as AIInsight[]
 
   const activeLocations = locations.filter(l => l.status === 'active').length
   const totalLeads = leads.length
@@ -31,6 +46,15 @@ export default async function DashboardPage() {
   leads.forEach(l => {
     leadsByLocation[l.location_id] = (leadsByLocation[l.location_id] ?? 0) + 1
   })
+
+  // Get latest insight per location
+  const latestInsightByLocation: Record<string, AIInsight> = {}
+  allInsights.forEach(insight => {
+    if (insight.location_id && !latestInsightByLocation[insight.location_id]) {
+      latestInsightByLocation[insight.location_id] = insight
+    }
+  })
+  const hasInsights = Object.keys(latestInsightByLocation).length > 0
 
   return (
     <div className="p-8 space-y-8">
@@ -93,6 +117,47 @@ export default async function DashboardPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* AI Insights Section */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Lightbulb className="h-5 w-5 text-amber-500" />
+          <h2 className="text-lg font-semibold text-gray-900">AI Insights</h2>
+        </div>
+
+        {!hasInsights ? (
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-sm text-gray-400">
+                First insights generate after 7 days of data. Weekly AI analysis runs every Sunday at midnight.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {locations.filter(l => l.status === 'active').map(loc => {
+              const insight = latestInsightByLocation[loc.id]
+              if (!insight) return null
+              const snippet = insight.insights_text.slice(0, 280) + (insight.insights_text.length > 280 ? '...' : '')
+              return (
+                <Card key={loc.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-sm font-semibold">{loc.name}</CardTitle>
+                      <span className="text-xs text-gray-400">
+                        Week of {format(new Date(insight.week_start + 'T00:00:00'), 'MMM d')}
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 leading-relaxed">{snippet}</p>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

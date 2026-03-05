@@ -12,7 +12,7 @@ export const aiInsights = inngest.createFunction(
 
     const { data: locations } = await supabaseAdmin
       .from('locations')
-      .select('id, name, city, state')
+      .select('id, name, city, state, org_id')
       .eq('status', 'active')
 
     if (!locations?.length) return { processed: 0 }
@@ -40,6 +40,8 @@ export const aiInsights = inngest.createFunction(
         const totalSpend = spend?.reduce((s, r) => s + (r.spend ?? 0), 0) ?? 0
 
         locationData.push({
+          locationId: location.id,
+          orgId: location.org_id,
           location: `${location.name}, ${location.city} ${location.state}`,
           totalLeads,
           bookedLeads: booked,
@@ -57,21 +59,27 @@ export const aiInsights = inngest.createFunction(
     })
 
     await step.run('save-insights', async () => {
-      const { data: orgs } = await supabaseAdmin
-        .from('organizations')
-        .select('id')
-        .limit(1)
+      // Save one insight record per location
+      const inserts = locationData.map(ld => ({
+        org_id: (ld as { orgId: string }).orgId ?? null,
+        location_id: (ld as { locationId: string }).locationId ?? null,
+        week_start: weekStart,
+        week_end: weekEnd,
+        insights_text: insights,
+        metrics: {
+          totalLeads: (ld as { totalLeads: number }).totalLeads,
+          bookedLeads: (ld as { bookedLeads: number }).bookedLeads,
+          bookingRate: (ld as { bookingRate: string }).bookingRate,
+          totalSpend: (ld as { totalSpend: string }).totalSpend,
+          cpl: (ld as { cpl: string }).cpl,
+        },
+      }))
 
-      if (orgs?.length) {
-        await supabaseAdmin.from('gbp_posts').insert({
-          gbp_profile_id: null,
-          type: 'STANDARD',
-          summary: `Weekly Insights (${weekStart} to ${weekEnd}):\n\n${insights}`,
-          status: 'draft',
-        })
+      if (inserts.length > 0) {
+        await supabaseAdmin.from('ai_insights').insert(inserts)
       }
 
-      return { saved: true }
+      return { saved: inserts.length }
     })
 
     return { weekStart, weekEnd, locations: locationData.length, insights }
