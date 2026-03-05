@@ -278,17 +278,22 @@ export async function GET(request: NextRequest) {
 
       if (!adminMemberIds.length) continue
 
-      // Get user emails from Clerk
+      // Fetch all admin user emails in parallel (no N+1)
+      const userResults = await Promise.allSettled(
+        adminMemberIds.map((userId) =>
+          fetch(`https://api.clerk.com/v1/users/${userId}`, {
+            headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
+          }).then((r) => r.ok ? r.json() as Promise<{
+            email_addresses?: Array<{ email_address: string; id: string }>
+            primary_email_address_id?: string
+          }> : null)
+        )
+      )
+
       const adminEmails: string[] = []
-      for (const userId of adminMemberIds) {
-        const userRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-          headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` },
-        })
-        if (!userRes.ok) continue
-        const user = (await userRes.json()) as {
-          email_addresses?: Array<{ email_address: string; id: string }>
-          primary_email_address_id?: string
-        }
+      for (const result of userResults) {
+        if (result.status !== 'fulfilled' || !result.value) continue
+        const user = result.value
         const primaryEmail = user.email_addresses?.find(
           (e) => e.id === user.primary_email_address_id
         )

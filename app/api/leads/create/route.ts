@@ -17,7 +17,42 @@ const leadCreateSchema = z.object({
   ab_variant: z.enum(['A', 'B', 'C']).optional().nullable(),
 })
 
+// In-memory rate limiter: 5 submissions per IP per minute
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 5
+const RATE_WINDOW_MS = 60 * 1000
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+
+  if (entry.count >= RATE_LIMIT) {
+    return false
+  }
+
+  entry.count++
+  return true
+}
+
 export async function POST(req: NextRequest) {
+  // Rate limit by IP
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('x-real-ip') ??
+    'unknown'
+
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please wait before submitting again.' },
+      { status: 429 }
+    )
+  }
+
   try {
     const body = await req.json() as unknown
     const parsed = leadCreateSchema.safeParse(body)
@@ -95,10 +130,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (data.landing_page_id) {
-      supabaseAdmin
-        .from('landing_pages')
-        .update({ conversions: 1 })
-        .eq('id', data.landing_page_id)
+      supabaseAdmin.rpc('increment_landing_page_conversions', { page_id: data.landing_page_id })
         .then(() => null, () => null)
     }
 

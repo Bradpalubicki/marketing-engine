@@ -48,7 +48,7 @@ export function SpendChart({ data }: SpendChartProps) {
           tickFormatter={(v: number) => `$${v}`}
         />
         <Tooltip
-          formatter={(value: number | string) => `$${Number(value).toFixed(2)}`}
+          formatter={(value: number | string | undefined) => `$${Number(value ?? 0).toFixed(2)}`}
           labelStyle={{ color: '#374151', fontWeight: 600 }}
           contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0' }}
         />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -11,7 +12,7 @@ interface Props {
 
 export default function DashboardError({ error, reset }: Props) {
   useEffect(() => {
-    // Log to Sentry or error service in production
+    Sentry.captureException(error)
   }, [error])
 
   return (

@@ -14,7 +14,7 @@ const appointmentWebhookSchema = z.object({
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('x-webhook-secret')
   const expectedSecret = process.env.APPOINTMENTS_WEBHOOK_SECRET
-  if (expectedSecret && authHeader !== expectedSecret) {
+  if (!expectedSecret || authHeader !== expectedSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

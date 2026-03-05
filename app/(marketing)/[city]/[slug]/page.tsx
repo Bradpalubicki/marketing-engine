@@ -177,10 +177,7 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
     } : {}),
   }
 
-  supabaseAdmin
-    .from('landing_pages')
-    .update({ views: (landingPage.views ?? 0) + 1 })
-    .eq('id', landingPage.id)
+  supabaseAdmin.rpc('increment_landing_page_views', { page_id: landingPage.id })
     .then(() => null, () => null)
 
   return (

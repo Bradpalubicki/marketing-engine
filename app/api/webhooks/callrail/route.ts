@@ -5,6 +5,15 @@ import { inngest } from '@/inngest/client'
 import { createAttributionRecord } from '@/lib/attribution'
 
 export async function POST(req: NextRequest) {
+  // Validate CallRail webhook secret
+  const webhookSecret = process.env.CALLRAIL_WEBHOOK_SECRET
+  if (webhookSecret) {
+    const incomingSecret = req.headers.get('x-callrail-secret') ?? req.headers.get('x-callrail-signature')
+    if (!incomingSecret || incomingSecret !== webhookSecret) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
+
   try {
     const body = await req.json() as Record<string, unknown>
     const webhook = parseWebhook(body)

@@ -13,7 +13,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { userId } = await auth()
+  const { userId, orgId } = await auth()
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -26,6 +26,27 @@ export async function PATCH(
 
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
+    }
+
+    // Verify the location belongs to the user's org before updating
+    if (orgId) {
+      const { data: org } = await supabaseAdmin
+        .from('organizations')
+        .select('id')
+        .eq('clerk_org_id', orgId)
+        .single()
+
+      if (org) {
+        const { data: loc } = await supabaseAdmin
+          .from('locations')
+          .select('org_id')
+          .eq('id', id)
+          .single()
+
+        if (!loc || loc.org_id !== org.id) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+      }
     }
 
     const { data: location, error } = await supabaseAdmin

@@ -1,0 +1,83 @@
+project: marketing-engine
+audit_date: "2026-03-04"
+url: https://marketing-engine-roan.vercel.app
+repo: Bradpalubicki/marketing-engine
+supabase_project: ftuneexcrtpagrfntbkk
+stack:
+  framework: Next.js 16 (App Router)
+  auth: Clerk
+  database: Supabase (PostgreSQL + RLS)
+  background_jobs: Inngest
+  sms: Twilio
+  email: Resend
+  analytics: PostHog
+  errors: Sentry
+  ai: Anthropic claude-sonnet-4-6
+
+phases:
+  - id: "0"
+    name: Assessment
+    status: complete
+  - id: "1"
+    name: Deep Review
+    status: complete
+  - id: "2"
+    name: Fix All Issues
+    status: in_progress
+  - id: "3"
+    name: Enhance
+    status: pending
+  - id: "4"
+    name: Deploy
+    status: pending
+  - id: "5"
+    name: Completion Report
+    status: pending
+
+findings:
+  critical:
+    - id: C1
+      file: app/api/webhooks/callrail/route.ts
+      issue: No CallRail signature validation — any POST accepted
+    - id: C2
+      file: app/api/webhooks/twilio/route.ts
+      issue: No Twilio signature validation — opt-out can be faked
+    - id: C3
+      file: app/api/locations/[id]/route.ts
+      issue: Auth check but no ownership verification — any authed user can update any location
+    - id: C4
+      file: app/api/webhooks/appointments/route.ts
+      issue: Secret check is conditional — if env var unset, endpoint is wide open
+  high:
+    - id: H1
+      file: app/api/leads/create/route.ts
+      issue: No rate limiting on public endpoint
+    - id: H2
+      file: app/(dashboard)/layout.tsx
+      issue: No mobile hamburger menu — sidebar is desktop-only
+    - id: H3
+      file: app/layout.tsx
+      issue: Missing title template, metadataBase, robots directive
+    - id: H4
+      file: app/error.tsx
+      issue: Root-level global error boundary does not exist
+    - id: H5
+      file: app/api/leads/create/route.ts
+      issue: landing_pages conversions counter sets to 1 instead of incrementing
+  medium:
+    - id: M1
+      file: app/api/cron/weekly-report/route.ts
+      issue: N+1 Clerk API calls — individual fetch per user ID inside location loop
+    - id: M2
+      file: app/(dashboard)/dashboard/reviews/page.tsx
+      issue: Missing empty state when 0 reviews exist
+    - id: M3
+      file: app/(dashboard)/dashboard/error.tsx
+      issue: Sentry capture not wired in error boundary useEffect
+  low:
+    - id: L1
+      file: lib/supabase.ts
+      issue: getServiceRoleKey() falls back to anon key — risky pattern
+    - id: L2
+      file: app/api/inngest/health/route.ts
+      issue: No auth — exposes registered function names publicly

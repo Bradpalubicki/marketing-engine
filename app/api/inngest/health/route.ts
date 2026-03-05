@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 
 const REGISTERED_FUNCTION_IDS = [
   'lead-nurture',
@@ -12,7 +13,19 @@ const REGISTERED_FUNCTION_IDS = [
   'ai-insights',
 ]
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  // Allow cron with secret or authenticated dashboard users
+  const authHeader = req.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
+  const isCron = cronSecret && authHeader === `Bearer ${cronSecret}`
+
+  if (!isCron) {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+  }
+
   const inngestEventKey = process.env.INNGEST_EVENT_KEY
   const inngestSigningKey = process.env.INNGEST_SIGNING_KEY
 
