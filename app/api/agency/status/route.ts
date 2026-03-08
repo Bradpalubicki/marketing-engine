@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-  const secret = process.env.AGENCY_SECRET;
+  const secret = process.env.AGENCY_SNAPSHOT_SECRET;
   const auth = req.headers.get('authorization');
   if (!secret || auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const monthStart = new Date(now);
     monthStart.setDate(now.getDate() - 30);
 
-    const [leadsToday, leadsMonth] = await Promise.all([
+    const [leadsToday, leadsMonth, lastLead] = await Promise.all([
       supabaseAdmin
         .from('leads')
         .select('id', { count: 'exact', head: true })
@@ -27,6 +27,12 @@ export async function GET(req: NextRequest) {
         .from('leads')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', monthStart.toISOString()),
+      supabaseAdmin
+        .from('leads')
+        .select('updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single(),
     ]);
 
     return NextResponse.json({
@@ -43,7 +49,7 @@ export async function GET(req: NextRequest) {
         microsoft_ads: { configured: !!process.env.MICROSOFT_ADS_CLIENT_ID, status: process.env.MICROSOFT_ADS_CLIENT_ID ? 'connected' : 'not_configured' },
         google_ads: { configured: !!process.env.GOOGLE_ADS_CLIENT_ID, status: process.env.GOOGLE_ADS_CLIENT_ID ? 'connected' : 'not_configured' },
       },
-      health: { dbOk: true, lastCronRun: null, cronHealthy: true },
+      health: { dbOk: !lastLead.error, lastCronRun: lastLead.data?.updated_at ?? null, cronHealthy: !lastLead.error },
     });
   } catch (err) {
     return NextResponse.json({ error: 'Status check failed', details: err instanceof Error ? err.message : 'Unknown' }, { status: 500 });
