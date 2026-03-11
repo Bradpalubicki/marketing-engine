@@ -39,7 +39,7 @@ export async function GET() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: `SELECT customer_client.id, customer_client.descriptive_name, customer_client.status FROM customer_client WHERE customer_client.manager = false`,
+          query: `SELECT customer.id, customer.descriptive_name, customer.status FROM customer LIMIT 1`,
         }),
       }
     )
@@ -49,12 +49,12 @@ export async function GET() {
     if (!listRes.ok) {
       results.accounts = { ok: false, status: listRes.status, error: listData }
     } else {
-      const accounts = (listData as Array<{ results?: Array<{ customerClient: { id: string; descriptiveName: string; status: string } }> }>)
+      const accounts = (listData as Array<{ results?: Array<{ customer: { id: string; descriptiveName: string; status: string } }> }>)
         .flatMap(chunk => chunk.results ?? [])
         .map(r => ({
-          id: r.customerClient.id,
-          name: r.customerClient.descriptiveName,
-          status: r.customerClient.status,
+          id: r.customer.id,
+          name: r.customer.descriptiveName,
+          status: r.customer.status,
         }))
       results.accounts = { ok: true, count: accounts.length, accounts }
     }
