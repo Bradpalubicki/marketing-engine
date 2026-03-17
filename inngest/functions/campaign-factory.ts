@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { generateRSACopy, generateMetaCopy } from '@/lib/ad-copy-generator'
 import { checkCompliance } from '@/lib/compliance'
 import { createCampaign as createMicrosoftCampaign } from '@/lib/microsoft-ads'
-import { createCampaign as createGoogleCampaign } from '@/lib/google-ads'
+import { createCustomerAccount, createCampaign as createGoogleCampaign } from '@/lib/google-ads'
 
 interface LocationActivatedEvent {
   locationId: string
@@ -72,16 +72,38 @@ export const campaignFactory = inngest.createFunction(
       city,
       state,
       orgId,
-      googleCustomerId,
       metaAdAccountId,
       microsoftAccountId,
       adBudgetMonthly = 3000,
     } = event.data as LocationActivatedEvent
 
+    let googleCustomerId = (event.data as LocationActivatedEvent).googleCustomerId
+
     await supabaseAdmin
       .from('locations')
       .update({ campaign_factory_status: 'running' })
       .eq('id', locationId)
+
+    // Step 0: Provision Google Ads sub-account if client doesn't have one yet
+    if (process.env.FEATURE_GOOGLE_ADS === 'true' && !googleCustomerId) {
+      const newCustomerId = await step.run('provision-google-ads-account', async () => {
+        const customerId = await createCustomerAccount({
+          descriptiveName: locationName,
+          timeZone: 'America/Chicago',
+        })
+
+        // Save customer ID back to the organization record
+        await supabaseAdmin
+          .from('organizations')
+          .update({ google_ads_customer_id: customerId })
+          .eq('id', orgId)
+
+        return customerId
+      })
+
+      // Use the newly created account for the rest of the factory
+      googleCustomerId = newCustomerId
+    }
 
     // Step 1: Pre-flight compliance check
     const complianceResult = await step.run('pre-flight-compliance', async () => {

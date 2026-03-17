@@ -1,5 +1,41 @@
 const GOOGLE_ADS_BASE = 'https://googleads.googleapis.com/v19'
 
+export async function createCustomerAccount(params: {
+  descriptiveName: string
+  currencyCode?: string
+  timeZone?: string
+}): Promise<string> {
+  const token = await getGoogleAccessToken()
+  const mccId = process.env.GOOGLE_ADS_MCC_CUSTOMER_ID!
+
+  const response = await fetch(
+    `${GOOGLE_ADS_BASE}/customers/${mccId}/customers:createCustomerClient`,
+    {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        customerClient: {
+          descriptiveName: params.descriptiveName,
+          currencyCode: params.currencyCode ?? 'USD',
+          timeZone: params.timeZone ?? 'America/Chicago',
+        },
+        emailAddress: process.env.GBP_AGENCY_ACCOUNT_EMAIL,
+        accessRole: 'ADMIN',
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const err = await response.text()
+    throw new Error(`Google Ads account creation failed: ${response.status} — ${err}`)
+  }
+
+  const data = (await response.json()) as { resourceName: string }
+  // resourceName = "customers/1234567890" — extract the numeric ID
+  const customerId = data.resourceName.split('/')[1]
+  return customerId
+}
+
 async function getGoogleAccessToken(): Promise<string> {
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
