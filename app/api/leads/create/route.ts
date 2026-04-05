@@ -78,6 +78,8 @@ export async function POST(req: NextRequest) {
     const utmSource = cookies['_utm_source'] ?? null
     const utmMedium = cookies['_utm_medium'] ?? null
     const utmCampaign = cookies['_utm_campaign'] ?? null
+    const utmContent = cookies['_utm_content'] ?? null
+    const utmTerm = cookies['_utm_term'] ?? null
 
     // Derive first/last touch sources from UTM + click ID signals
     const firstTouchSource: string | null =
@@ -113,6 +115,8 @@ export async function POST(req: NextRequest) {
         utm_source: utmSource,
         utm_medium: utmMedium,
         utm_campaign: utmCampaign,
+        utm_content: utmContent,
+        utm_term: utmTerm,
         first_touch_source: firstTouchSource,
         last_touch_source: lastTouchSource,
         landing_page_id: data.landing_page_id ?? null,

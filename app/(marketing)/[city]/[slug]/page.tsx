@@ -133,8 +133,17 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
   if (sp.utm_source) {
     cookieStore.set('_utm_source', sp.utm_source, { maxAge: 30 * 24 * 60 * 60, path: '/' })
   }
+  if (sp.utm_medium) {
+    cookieStore.set('_utm_medium', sp.utm_medium, { maxAge: 30 * 24 * 60 * 60, path: '/' })
+  }
   if (sp.utm_campaign) {
     cookieStore.set('_utm_campaign', sp.utm_campaign, { maxAge: 30 * 24 * 60 * 60, path: '/' })
+  }
+  if (sp.utm_content) {
+    cookieStore.set('_utm_content', sp.utm_content, { maxAge: 30 * 24 * 60 * 60, path: '/' })
+  }
+  if (sp.utm_term) {
+    cookieStore.set('_utm_term', sp.utm_term, { maxAge: 30 * 24 * 60 * 60, path: '/' })
   }
 
   // A/B testing — get or assign distinct ID
