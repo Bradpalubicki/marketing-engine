@@ -1,5 +1,7 @@
 import crypto from 'crypto'
 
+// ── Existing functions (preserved) ───────────────────────────────────────────
+
 export function hashPHI(value: string): string {
   return crypto.createHash('sha256').update(value.toLowerCase().trim()).digest('hex')
 }
@@ -38,3 +40,43 @@ export function safeConversionPayload(params: {
     conversion_value: params.conversion_value,
   }
 }
+
+// ── New functions (Phase 3 spec) ──────────────────────────────────────────────
+
+export function hashEmail(email: string): string {
+  return crypto.createHash('sha256').update(email.toLowerCase().trim()).digest('hex')
+}
+
+export function hashPhone(phone: string): string {
+  return crypto.createHash('sha256').update(phone.replace(/\D/g, '')).digest('hex')
+}
+
+export function filterPHI<T extends Record<string, unknown>>(data: T): Partial<T> {
+  const PHI_FIELDS = [
+    'health_condition', 'diagnosis', 'treatment', 'medication',
+    'insurance_id', 'patient_id', 'medical_record', 'ssn', 'dob',
+    'date_of_birth'
+  ]
+  return Object.fromEntries(
+    Object.entries(data).filter(([key]) => !PHI_FIELDS.includes(key))
+  ) as Partial<T>
+}
+
+export function assertNoPHI(payload: Record<string, unknown>): void {
+  const PHI_PATTERNS = [/ssn/i, /diagnosis/i, /patient_id/i, /health_condition/i, /insurance_id/i]
+  for (const [key, value] of Object.entries(payload)) {
+    if (PHI_PATTERNS.some(p => p.test(key)))
+      throw new Error(`PHI field in outbound payload: ${key}`)
+    if (typeof value === 'string' && /\d{3}-\d{2}-\d{4}/.test(value))
+      throw new Error(`Possible SSN in field: ${key}`)
+  }
+}
+
+export const MetaEventName = {
+  Lead: 'Lead',
+  Contact: 'Contact',
+  Schedule: 'Schedule',
+  ViewContent: 'ViewContent',
+} as const
+
+export type MetaEventNameType = typeof MetaEventName[keyof typeof MetaEventName]

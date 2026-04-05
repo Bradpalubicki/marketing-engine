@@ -184,6 +184,84 @@ export async function uploadOfflineConversion(params: {
   }
 }
 
+export async function campaignExistsByName(
+  customerId: string,
+  campaignName: string
+): Promise<{ exists: boolean; campaignId?: string }> {
+  const token = await getGoogleAccessToken()
+  const response = await fetch(
+    `${GOOGLE_ADS_BASE}/customers/${customerId}/googleAds:searchStream`,
+    {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        query: `SELECT campaign.id, campaign.name FROM campaign WHERE campaign.name = '${campaignName.replace(/'/g, "\\'")}' AND campaign.status != 'REMOVED'`
+      }),
+    }
+  )
+  if (!response.ok) return { exists: false }
+  const data = await response.json() as Array<{ results?: Array<{ campaign: { id: string } }> }>
+  const results = data[0]?.results ?? []
+  if (results.length > 0) {
+    return { exists: true, campaignId: results[0].campaign.id }
+  }
+  return { exists: false }
+}
+
+export async function createCampaignWithDryRun(
+  customerId: string,
+  params: {
+    name: string
+    dailyBudgetMicros: number
+    biddingStrategy: string
+    cpcBidCeilingMicros?: number
+    validateOnly?: boolean
+  }
+): Promise<{ resourceName: string; dryRun: boolean }> {
+  const token = await getGoogleAccessToken()
+  const isDryRun = params.validateOnly ?? process.env.GOOGLE_ADS_DRY_RUN === 'true'
+
+  const response = await fetch(
+    `${GOOGLE_ADS_BASE}/customers/${customerId}/campaigns:mutate`,
+    {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({
+        operations: [
+          {
+            create: {
+              name: params.name,
+              advertisingChannelType: 'SEARCH',
+              status: 'PAUSED',
+              campaignBudget: {
+                amountMicros: params.dailyBudgetMicros,
+                deliveryMethod: 'STANDARD',
+              },
+              biddingStrategyType: params.biddingStrategy,
+              ...(params.cpcBidCeilingMicros && {
+                manualCpc: { enhancedCpcEnabled: false },
+              }),
+            },
+          },
+        ],
+        validateOnly: isDryRun,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const err = await response.text()
+    throw new Error(`Google Ads campaign creation failed: ${response.status} — ${err}`)
+  }
+
+  if (isDryRun) {
+    return { resourceName: `customers/${customerId}/campaigns/dry_run`, dryRun: true }
+  }
+
+  const data = (await response.json()) as { results: Array<{ resourceName: string }> }
+  return { resourceName: data.results[0].resourceName, dryRun: false }
+}
+
 export async function getCampaignSpend(
   customerId: string,
   dateRange: { start: string; end: string }

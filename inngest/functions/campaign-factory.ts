@@ -79,6 +79,26 @@ export const campaignFactory = inngest.createFunction(
 
     let googleCustomerId = (event.data as LocationActivatedEvent).googleCustomerId
 
+    // Completeness gate — require score >= 60 before factory runs
+    const { data: intel } = await supabaseAdmin
+      .from('client_intelligence')
+      .select('completeness_score')
+      .eq('organization_id', orgId)
+      .maybeSingle()
+
+    if (!intel || intel.completeness_score < 60) {
+      await supabaseAdmin
+        .from('locations')
+        .update({ campaign_factory_status: 'failed' })
+        .eq('id', locationId)
+      return {
+        success: false,
+        reason: 'completeness_gate',
+        score: intel?.completeness_score ?? 0,
+        message: 'Complete your client profile (60% required) before launching campaigns.',
+      }
+    }
+
     await supabaseAdmin
       .from('locations')
       .update({ campaign_factory_status: 'running' })

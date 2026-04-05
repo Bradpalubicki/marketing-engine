@@ -207,7 +207,113 @@ export const gclidPurgeDaily = inngest.createFunction(
 )
 
 // ---------------------------------------------------------------------------
-// 5. Copy Result Feedback Loop — event-triggered: sem/copy.result.recorded
+// 5. tCPA Upgrade Flag — daily 8AM UTC
+// Checks campaigns with 30+ conversions, flags them for tCPA upgrade (human review required)
+// Does NOT automatically switch bidding — writes action_type: tCPA_upgrade_ready
+// ---------------------------------------------------------------------------
+export const tcpaUpgradeFlag = inngest.createFunction(
+  { id: 'sem-tcpa-upgrade-flag', name: 'SEM: tCPA Upgrade Flag' },
+  { cron: '0 8 * * *' },
+  async ({ logger }) => {
+    // Pull 30-day conversion totals from sem_platform_daily_snapshots grouped by location_id
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+    const { data: snapshots, error } = await supabaseAdmin
+      .from('sem_platform_daily_snapshots')
+      .select('location_id, conversions, platform')
+      .gte('snapshot_date', cutoff)
+      .eq('platform', 'google')
+
+    if (error) {
+      logger.error('tCPA flag: failed to fetch snapshots', { error })
+      return { skipped: true }
+    }
+
+    // Aggregate conversions by location
+    const byLocation: Record<string, number> = {}
+    for (const row of snapshots ?? []) {
+      if (!byLocation[row.location_id]) byLocation[row.location_id] = 0
+      byLocation[row.location_id] += row.conversions ?? 0
+    }
+
+    // Find qualifying campaigns with 30+ conversions
+    const qualifyingLocationIds = Object.entries(byLocation)
+      .filter(([, total]) => total >= 30)
+      .map(([locationId]) => locationId)
+
+    if (qualifyingLocationIds.length === 0) {
+      logger.info('tCPA flag: no campaigns qualify yet')
+      return { flagged: 0 }
+    }
+
+    // Get the org_id and campaign_id for these locations
+    const { data: campaigns } = await supabaseAdmin
+      .from('campaigns')
+      .select('id, location_id, platform_campaign_id, locations!inner(org_id)')
+      .in('location_id', qualifyingLocationIds)
+      .eq('platform', 'google')
+      .eq('bidding_strategy', 'MANUAL_CPC')
+      .neq('status', 'removed')
+
+    if (!campaigns?.length) return { flagged: 0 }
+
+    const actions = campaigns.map(c => {
+      const loc = c.locations as unknown as { org_id: string }
+      return {
+        org_id: loc.org_id,
+        campaign_id: c.platform_campaign_id ?? c.id,
+        action_type: 'tCPA_upgrade_ready',
+        action_level: 2,
+        status: 'PENDING',
+        payload: {
+          conversions_30d: byLocation[c.location_id],
+          current_strategy: 'MANUAL_CPC',
+          recommended_strategy: 'TARGET_CPA',
+          note: 'Human review required before applying',
+        },
+      }
+    })
+
+    // Check for existing pending flags to avoid duplicates
+    const existingOrgCampaignPairs = new Set(
+      actions.map(a => `${a.org_id}:${a.campaign_id}`)
+    )
+
+    const { data: existing } = await supabaseAdmin
+      .from('sem_platform_automated_actions')
+      .select('org_id, campaign_id')
+      .eq('action_type', 'tCPA_upgrade_ready')
+      .eq('status', 'PENDING')
+
+    const alreadyFlagged = new Set(
+      (existing ?? []).map(e => `${e.org_id}:${e.campaign_id}`)
+    )
+
+    const newActions = actions.filter(
+      a => !alreadyFlagged.has(`${a.org_id}:${a.campaign_id}`)
+    )
+
+    if (newActions.length === 0) {
+      logger.info('tCPA flag: all qualifying campaigns already flagged')
+      return { flagged: 0, alreadyPending: existingOrgCampaignPairs.size }
+    }
+
+    const { error: insertError } = await supabaseAdmin
+      .from('sem_platform_automated_actions')
+      .insert(newActions)
+
+    if (insertError) {
+      logger.error('tCPA flag: insert failed', { error: insertError })
+      return { flagged: 0, error: insertError.message }
+    }
+
+    logger.info('tCPA upgrade flags written', { count: newActions.length })
+    return { flagged: newActions.length }
+  }
+)
+
+// ---------------------------------------------------------------------------
+// 6. Copy Result Feedback Loop — event-triggered: sem/copy.result.recorded
 // Updates sem_copy_performance_log, re-ranks variants
 // ---------------------------------------------------------------------------
 export const copyResultFeedbackLoop = inngest.createFunction(
