@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# NUS-88: Global Hub Stop Hook
+# Fires on every CC session end. Writes session summary to Global Brain Hub.
+# Reads ENGINE_NAME and DOPPLER_PROJECT from CLAUDE.md REPO IDENTITY block.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+WRITER="$SCRIPT_DIR/../scripts/notion-hub-writer.js"
+
+if [ ! -f "$WRITER" ]; then
+  echo "[stop hook] notion-hub-writer.js not found at $WRITER — skipping hub write"
+  exit 0
+fi
+
+if ! command -v node &>/dev/null; then
+  echo "[stop hook] node not found — skipping hub write"
+  exit 0
+fi
+
+node "$WRITER" "$REPO_ROOT" 2>&1
+exit 0
