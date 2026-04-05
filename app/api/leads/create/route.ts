@@ -79,6 +79,15 @@ export async function POST(req: NextRequest) {
     const utmMedium = cookies['_utm_medium'] ?? null
     const utmCampaign = cookies['_utm_campaign'] ?? null
 
+    // Derive first/last touch sources from UTM + click ID signals
+    const firstTouchSource: string | null =
+      utmSource ??
+      (gclid ? 'google' : msclkid ? 'microsoft' : fbclid ? 'meta' : null)
+
+    const lastTouchSource: string | null =
+      utmSource ??
+      (gclid ? 'google' : msclkid ? 'microsoft' : fbclid ? 'meta' : null)
+
     const { data: location, error: locationError } = await supabaseAdmin
       .from('locations')
       .select('id, org_id, name, phone, callrail_phone')
@@ -104,6 +113,8 @@ export async function POST(req: NextRequest) {
         utm_source: utmSource,
         utm_medium: utmMedium,
         utm_campaign: utmCampaign,
+        first_touch_source: firstTouchSource,
+        last_touch_source: lastTouchSource,
         landing_page_id: data.landing_page_id ?? null,
         ab_variant: data.ab_variant ?? null,
         status: 'new',

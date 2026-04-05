@@ -9,6 +9,9 @@ import { budgetPacing } from '@/inngest/functions/budget-pacing'
 import { offlineConversions } from '@/inngest/functions/offline-conversions'
 import { aiInsights } from '@/inngest/functions/ai-insights'
 import { spendReporting } from '@/inngest/functions/spend-reporting'
+import { expectationDocJob } from '@/inngest/functions/expectation-doc'
+import { weeklyReportEmail } from '@/inngest/functions/weekly-report-email'
+import { pesAlert } from '@/inngest/functions/pes-alert'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -22,5 +25,8 @@ export const { GET, POST, PUT } = serve({
     offlineConversions,
     aiInsights,
     spendReporting,
+    expectationDocJob,
+    weeklyReportEmail,
+    pesAlert,
   ],
 })
