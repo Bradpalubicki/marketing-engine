@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Engine — Operating Manual</title>
+  <style>
+    :root {
+      --navy: #0A1628;
+      --gold: #F5C842;
+      --navy-light: #132038;
+      --navy-mid: #1a2d50;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: rgba(245,200,66,0.15);
+      --sidebar-width: 260px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--navy);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Top bar */
+    #topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: var(--navy-light);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      z-index: 100;
+    }
+    #topbar h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    #topbar .version {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    #search {
+      flex: 1;
+      max-width: 380px;
+      padding: 7px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    #search::placeholder { color: var(--text-muted); }
+    #search:focus { border-color: var(--gold); background: rgba(255,255,255,0.09); }
+    #hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px;
+      margin-left: auto;
+    }
+
+    /* Layout */
+    #wrapper {
+      display: flex;
+      padding-top: 56px;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      position: fixed;
+      top: 56px;
+      left: 0;
+      bottom: 0;
+      background: var(--navy-light);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px 0;
+      z-index: 50;
+    }
+    #sidebar a {
+      display: block;
+      padding: 7px 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    #sidebar a:hover, #sidebar a.active {
+      color: var(--gold);
+      border-left-color: var(--gold);
+      background: rgba(245,200,66,0.05);
+    }
+    #sidebar .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 16px 20px 4px;
+      opacity: 0.6;
+    }
+
+    /* Main content */
+    #content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 900px;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 64px;
+      scroll-margin-top: 80px;
+    }
+    .section h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 28px 0 10px;
+    }
+    .section p {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .section ul, .section ol {
+      margin: 8px 0 16px 20px;
+    }
+    .section li {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .section li strong {
+      color: var(--text);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .card p {
+      margin-bottom: 0;
+    }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+    }
+    .badge-live { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+    .badge-pending { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+    .badge-blocked { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+    .badge-auto { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.25); }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px;
+      font-size: 13px;
+    }
+    th {
+      background: var(--navy-mid);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+    td strong { color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Cron block */
+    .cron-block {
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+    .cron-block .cron-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .cron-block .cron-schedule {
+      font-size: 12px;
+      color: var(--gold);
+      font-family: 'Courier New', monospace;
+      margin-bottom: 8px;
+    }
+    .cron-block p { margin-bottom: 4px; }
+
+    /* Callout */
+    .callout {
+      background: rgba(245,200,66,0.07);
+      border: 1px solid rgba(245,200,66,0.2);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .callout-warn {
+      background: rgba(239,68,68,0.07);
+      border-color: rgba(239,68,68,0.2);
+    }
+
+    /* Code */
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      background: rgba(255,255,255,0.06);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #93c5fd;
+    }
+
+    /* Search hide */
+    .section.hidden { display: none; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      #sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.2s;
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      #hamburger { display: block; }
+      #content {
+        margin-left: 0;
+        padding: 24px 20px;
+      }
+      #search { max-width: 180px; }
+      .section.hidden { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<header id="topbar">
+  <h1>Marketing Engine — Operating Manual</h1>
+  <span class="version">v1.0 · 2026-04-05</span>
+  <input id="search" type="search" placeholder="Search manual…" aria-label="Search sections">
+  <button id="hamburger" aria-label="Toggle menu">☰</button>
+</header>
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <div class="section-label">Core</div>
+  <a href="#overview">1. Dashboard Overview</a>
+  <a href="#locations">2. Locations</a>
+  <a href="#campaigns">3. Campaigns</a>
+  <a href="#leads">4. Leads</a>
+  <a href="#analytics">5. Analytics</a>
+  <div class="section-label">GBP Automation</div>
+  <a href="#reviews">6. Reviews</a>
+  <a href="#posts">7. Posts</a>
+  <div class="section-label">Reporting</div>
+  <a href="#reports">8. Reports</a>
+  <a href="#tracking">9. Conv. Health</a>
+  <div class="section-label">Config</div>
+  <a href="#settings">10. Settings</a>
+  <div class="section-label">Automation</div>
+  <a href="#auto">11. What Runs Automatically</a>
+  <div class="section-label">Reference</div>
+  <a href="#troubleshooting">12. Troubleshooting</a>
+  <a href="#glossary">13. Glossary</a>
+</nav>
+
+<!-- Main content -->
+<div id="wrapper">
+<main id="content">
+
+<!-- ═══ SECTION 1 — Dashboard Overview ═══ -->
+<section class="section" id="overview">
+  <h2>1. Dashboard Overview</h2>
+  <p>The main dashboard (<code>/dashboard</code>) is your patient acquisition at a glance — live reads from the database every time you load the page.</p>
+
+  <h3>What it shows</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>Source</th><th>Time Period</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Active Locations</strong></td><td>locations table, status = active</td><td>Current count</td></tr>
+      <tr><td><strong>Leads This Month</strong></td><td>leads table, created_at ≥ 1st of month</td><td>Current calendar month</td></tr>
+      <tr><td><strong>Booking Rate</strong></td><td>Leads with status = booked or showed ÷ total leads</td><td>Current calendar month</td></tr>
+      <tr><td><strong>Top Location</strong></td><td>Most recently added location</td><td>Static (most recent)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Recent Leads table</h3>
+  <p>Shows the 10 most recent leads across all locations. Full lead list is at <code>/dashboard/leads</code>.</p>
+
+  <h3>Locations panel</h3>
+  <p>Shows up to 5 locations with leads-this-month counts. Click any location card to navigate to that location's detail view.</p>
+
+  <h3>AI Insights</h3>
+  <p>Weekly Claude-generated performance summaries per active location. These appear here after 7 days of data — the analysis runs every Sunday at midnight UTC. Until then, you'll see a placeholder message. Insights cover leads, booking rate, spend, and CPL for the trailing week.</p>
+
+  <div class="callout">
+    All dashboard metrics are <strong>live reads</strong> — no caching. If you refresh, you get the current DB state.
+  </div>
+</section>
+
+<!-- ═══ SECTION 2 — Locations ═══ -->
+<section class="section" id="locations">
+  <h2>2. Locations</h2>
+  <p>A location is a single clinic. Each one gets its own campaigns, leads, GBP automation, and reporting.</p>
+
+  <h3>How to add a location</h3>
+  <ol>
+    <li>Click <strong>Locations</strong> in the left nav.</li>
+    <li>Click <strong>Add Location</strong> (top right).</li>
+    <li>Fill out the form — name, city, state, address, monthly budget, and GBP location ID if you have it.</li>
+    <li>Save. The location is created with status = <code>active</code>.</li>
+  </ol>
+
+  <h3>What happens after you add a location</h3>
+  <p>The system fires a <code>location/activated</code> Inngest event. The Campaign Factory picks this up and:</p>
+  <ul>
+    <li>Runs a compliance check on all generated ad copy</li>
+    <li>Provisions a Google Ads sub-account under NuStack MCC (if Google Ads is enabled)</li>
+    <li>Creates placeholder campaign records for all three platforms: Google, Microsoft, Meta</li>
+    <li>Splits the monthly budget: 60% Google, 40% Microsoft</li>
+    <li>Writes campaign records to the <code>campaigns</code> table with status = <code>paused</code> until platform API is live</li>
+  </ul>
+
+  <div class="callout">
+    Google Ads and Meta Ads are currently in <strong>pending approval</strong> state. Campaigns are created as records in the DB but not live on the ad platforms yet. See Section 10 (Settings → Integrations) for the current status of each integration.
+  </div>
+
+  <h3>Location card status indicators</h3>
+  <p>Each location card shows leads this month. Location status is either <code>active</code> or <code>inactive</code>.</p>
+</section>
+
+<!-- ═══ SECTION 3 — Campaigns ═══ -->
+<section class="section" id="campaigns">
+  <h2>3. Campaigns</h2>
+  <p>The Campaigns page shows all campaigns across all locations with 30-day spend and performance data.</p>
+
+  <h3>MTD Spend cards</h3>
+  <p>Four cards at the top: Total, Google, Microsoft, Meta — all month-to-date from the <code>spend_records</code> table. Shows "—" if no ad platform is connected.</p>
+
+  <h3>Spend chart</h3>
+  <p>Daily spend by platform for the last 30 days. Pulls from <code>spend_records</code>. If Google/Meta/Microsoft is not connected, the corresponding line is flat.</p>
+
+  <h3>Platform connection banners</h3>
+  <p>If a platform isn't connected, you'll see a banner at the top. These are controlled by feature flags:</p>
+  <ul>
+    <li><code>FEATURE_GOOGLE_ADS=true</code> — removes the Google banner, enables spend ingestion</li>
+    <li><code>FEATURE_META_ADS=true</code> — removes Meta banner</li>
+    <li><code>FEATURE_MICROSOFT_ADS=true</code> — removes Bing banner</li>
+  </ul>
+
+  <h3>Campaign performance table</h3>
+  <p>Only appears if spend data exists. Shows per-campaign: spend (30d), clicks, impressions, CTR, leads, and CPL. Leads are matched by utm_campaign → campaign name.</p>
+
+  <h3>Pre-flight compliance checks</h3>
+  <p>Every campaign runs a pre-flight before activation. The system blocks campaigns that fail any of these gates:</p>
+  <table>
+    <thead><tr><th>Check</th><th>Gate Type</th><th>What it tests</th></tr></thead>
+    <tbody>
+      <tr><td><strong>BID_STRATEGY</strong></td><td><span class="badge badge-blocked">BLOCK</span></td><td>eCPC is deprecated Oct 2024 — will not activate</td></tr>
+      <tr><td><strong>TCPA</strong></td><td><span class="badge badge-blocked">BLOCK</span></td><td>TCPA opt-in language must be confirmed on all lead capture forms</td></tr>
+      <tr><td><strong>LP_SCORE</strong></td><td><span class="badge badge-blocked">BLOCK</span></td><td>Landing page must score ≥ 65. Below 65 = campaign blocked</td></tr>
+      <tr><td><strong>AUTO_APPLY_RECOMMENDATIONS</strong></td><td><span class="badge badge-blocked">BLOCK</span></td><td>Google auto-apply recommendations override manual bids — must be off</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Campaign statuses</h3>
+  <p><code>active</code> = live on platform. <code>paused</code> = created in DB but not live (platform API pending). <code>failed</code> = campaign factory hit an error. Check <code>campaign_factory_notes</code> on the location record for details.</p>
+
+  <div class="callout callout-warn">
+    <strong>Note:</strong> The Google Ads API is in Explorer Access (developer token pending Standard upgrade — 2–6 week approval). Microsoft Ads is blocked on Azure App Registration. Neither is live yet. Campaigns exist in the DB as placeholders until approvals land.
+  </div>
+</section>
+
+<!-- ═══ SECTION 4 — Leads ═══ -->
+<section class="section" id="leads">
+  <h2>4. Leads</h2>
+  <p>All inbound patient leads. A lead is created when someone submits a form, calls via CallRail, or is created via webhook.</p>
+
+  <h3>How leads flow in</h3>
+  <ul>
+    <li><strong>Web form:</strong> POST to <code>/api/leads/create</code> → lead record created → <code>lead/created</code> Inngest event fires → nurture sequence starts</li>
+    <li><strong>CallRail:</strong> CallRail webhook → <code>/api/webhooks/callrail</code> → lead created with source = <code>call</code></li>
+    <li><strong>Twilio SMS reply:</strong> Handled via <code>/api/webhooks/twilio</code></li>
+    <li><strong>Appointments webhook:</strong> <code>/api/webhooks/appointments</code> — external booking systems can push appointment confirmations</li>
+  </ul>
+
+  <h3>Lead status pipeline</h3>
+  <table>
+    <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><strong>new</strong></td><td>Just created. SMS sent within 60 seconds.</td></tr>
+      <tr><td><strong>contacted</strong></td><td>Initial SMS sent successfully. Nurture sequence active.</td></tr>
+      <tr><td><strong>booked</strong></td><td>Consultation scheduled.</td></tr>
+      <tr><td><strong>showed</strong></td><td>Patient showed up for their appointment.</td></tr>
+      <tr><td><strong>no_showed</strong></td><td>Booked but didn't show.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Lead fields captured on every lead</h3>
+  <p>name, phone, email (optional), location_id, source (form/call/chat), utm_source, utm_medium, utm_campaign, utm_content, utm_term, landing_page_id, first_touch_source, gclid (Google click ID), created_at, status, nurture_sequence_step.</p>
+
+  <h3>Lead quality rating</h3>
+  <p>Each week's report email contains 1–5 star rating buttons. When Brad clicks a rating, it's stored in the DB via <code>/api/leads/rate-quality</code>. This feeds back into the weekly AI narrative — the system uses it to assess lead source quality over time.</p>
+
+  <h3>Lead table filters</h3>
+  <p>You can filter by: <code>?location=</code>, <code>?status=</code>, <code>?source=</code> in the URL. The table shows the top 100 leads matching the filter.</p>
+
+  <h3>Lead export</h3>
+  <p><code>/api/leads/export</code> — CSV download. Auth required.</p>
+
+  <h3>Nurture sequence</h3>
+  <p>Fires automatically on every new lead. 5-step sequence:</p>
+  <ol>
+    <li><strong>Immediately:</strong> SMS to patient with booking link</li>
+    <li><strong>+2 hours:</strong> Follow-up email with booking link (if email provided)</li>
+    <li><strong>+24 hours:</strong> Retargeting audience event fired</li>
+    <li><strong>+72 hours:</strong> Internal alert email to location manager if lead is still uncontacted</li>
+    <li><strong>+7 days:</strong> Final re-engagement SMS ("Reply YES for a callback or STOP to opt out")</li>
+  </ol>
+  <p>Nurture pauses automatically if the lead is booked, showed, or no-showed. A <code>nurture_paused</code> flag can also be set manually.</p>
+</section>
+
+<!-- ═══ SECTION 5 — Analytics ═══ -->
+<section class="section" id="analytics">
+  <h2>5. Analytics</h2>
+  <p>Deeper metrics than the dashboard. Date-range selectable. Compares current period vs. previous period automatically.</p>
+
+  <h3>Available time periods</h3>
+  <p>Default is last 30 days. You can pass <code>?from=YYYY-MM-DD&to=YYYY-MM-DD</code> in the URL, or use the date range bar at the top of the page.</p>
+
+  <h3>Metrics shown</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>How it's calculated</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Total Leads</strong></td><td>All leads in date range, with % change vs. prior period</td></tr>
+      <tr><td><strong>Booking Rate</strong></td><td>Booked + showed ÷ total leads</td></tr>
+      <tr><td><strong>Show Rate</strong></td><td>Showed ÷ booked</td></tr>
+      <tr><td><strong>CPL</strong></td><td>Total ad spend ÷ total leads</td></tr>
+      <tr><td><strong>Cost Per Booked</strong></td><td>Total ad spend ÷ booked leads</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Attribution chart</h3>
+  <p>Stacked bar chart — leads by source (form / call / chat) per location. Shows which locations and channels are driving volume.</p>
+
+  <h3>Lead status breakdown</h3>
+  <p>Pie chart of leads by current status (new / contacted / booked / showed / no_showed) for the selected period.</p>
+
+  <h3>A/B variant breakdown</h3>
+  <p>If landing page A/B variants are configured (via PostHog and the <code>landing_pages</code> table), the analytics page shows conversion rates per variant. The <code>ab_variant</code> field on the <code>landing_pages</code> table drives this.</p>
+
+  <h3>Spend breakdown</h3>
+  <p>Total spend, Google, Microsoft, Meta — all from <code>spend_records</code> for the selected date range.</p>
+</section>
+
+<!-- ═══ SECTION 6 — Reviews ═══ -->
+<section class="section" id="reviews">
+  <h2>6. Reviews</h2>
+  <p>The Reviews section shows all Google Business Profile reviews for your connected locations, with AI-drafted responses queued for approval.</p>
+
+  <h3>How GBP reviews are pulled</h3>
+  <p>The <code>gbp-reviews</code> Inngest function runs every 4 hours. For each location with a GBP profile connected (<code>gbp_location_id</code> set), it:</p>
+  <ol>
+    <li>Calls the Google Business Profile API to fetch all reviews</li>
+    <li>For each new review (not already in <code>review_responses</code> table), generates an AI draft response via Claude</li>
+    <li>Saves the draft with status = <code>pending</code></li>
+  </ol>
+
+  <h3>Reviewing and approving responses</h3>
+  <p>Review queue is shown in the Reviews dashboard section. Each pending review has the AI draft pre-filled. Edit it if needed, then approve. Once approved, the response is submitted back to GBP via the API.</p>
+
+  <h3>GBP connection requirement</h3>
+  <p>Reviews only populate if the GBP OAuth is connected. Go to <strong>Settings → GBP</strong> to connect your Google account. The location also needs <code>gbp_location_id</code> set.</p>
+
+  <div class="callout">
+    The GBP OAuth needs a refresh token. After connecting, copy the token shown and add it to Vercel as <code>GBP_REFRESH_TOKEN</code>, then redeploy. See Settings → GBP for the full walkthrough.
+  </div>
+</section>
+
+<!-- ═══ SECTION 7 — Posts ═══ -->
+<section class="section" id="posts">
+  <h2>7. Posts</h2>
+  <p>Automated GBP post generation. Every Monday at 9AM UTC, the system generates 4 posts per active location and schedules them for the coming week.</p>
+
+  <h3>How it works</h3>
+  <ol>
+    <li>The <code>gbp-posts</code> Inngest function runs Monday 9AM UTC</li>
+    <li>For each active location with a <code>gbp_location_id</code>, Claude generates 4 post variants (typically a mix of promotional and informational types)</li>
+    <li>Posts are saved to the <code>gbp_posts</code> table with status = <code>scheduled</code></li>
+    <li>If GBP credentials are set, the function publishes each post directly to GBP at 6-second intervals (rate limiting)</li>
+    <li>Successfully published posts get status = <code>published</code>. Failed ones get status = <code>failed</code></li>
+  </ol>
+
+  <h3>Post scheduling</h3>
+  <p>Posts are spaced 2 days apart, starting the day after generation. So Monday generation → posts on Tuesday, Thursday, Saturday, Monday.</p>
+
+  <h3>What gets published automatically</h3>
+  <p>If GBP OAuth is connected and <code>gbp_location_id</code> is set on the location, posts publish automatically without any action from you. No approval queue — the AI generates and publishes directly.</p>
+
+  <div class="callout callout-warn">
+    If the GBP refresh token is missing or expired, posts will save with status = <code>scheduled</code> but not publish. You'll see <code>failed</code> entries in the posts table. Reconnect GBP in Settings → GBP.
+  </div>
+</section>
+
+<!-- ═══ SECTION 8 — Reports ═══ -->
+<section class="section" id="reports">
+  <h2>8. Reports</h2>
+  <p>Two types of reports: the in-app reports dashboard and the weekly email report.</p>
+
+  <h3>In-app reports page</h3>
+  <p>Shows per-location performance metrics: leads, booked, showed, conversion rate, ad spend, CPL, and top source — for this week, last week, and the last 30 days side-by-side.</p>
+  <p>Also shows the most recent weekly report (HTML) filed for each location, and a quality rating history.</p>
+
+  <h3>Weekly email report</h3>
+  <p>Sends every Monday at 8AM UTC to all org admins for locations with <code>weekly_report_enabled = true</code>. Each email contains:</p>
+  <ul>
+    <li>4 metric cards: new leads, consultations booked, patients showed, total ad spend</li>
+    <li>AI-generated narrative (3 parts: headline, what worked, what's next)</li>
+    <li>Ad spend breakdown by platform (Google / Microsoft / Meta)</li>
+    <li>Google Business Profile rating (if GBP connected)</li>
+    <li>1–5 lead quality rating buttons (your feedback goes into the AI's next report)</li>
+    <li>Link to full dashboard</li>
+  </ul>
+
+  <h3>How to enable weekly reports for a location</h3>
+  <p>Set <code>weekly_report_enabled = true</code> on the location record. It's on by default for active locations.</p>
+
+  <h3>Who receives the reports</h3>
+  <p>All Clerk org admins (role = <code>org:admin</code>) for the organization that owns the location. The system pulls emails from Clerk's API each send cycle.</p>
+
+  <h3>Report storage</h3>
+  <p>Each sent report is stored in <code>sem_weekly_reports</code> (one row per location per week). The in-app view renders the stored HTML directly.</p>
+</section>
+
+<!-- ═══ SECTION 9 — Conversion Health ═══ -->
+<section class="section" id="tracking">
+  <h2>9. Conversion Health</h2>
+  <p>Located at <code>/dashboard/tracking</code> (labeled "Conv. Health" in the nav). Shows whether conversion tracking is firing on each platform for each location.</p>
+
+  <h3>What it shows</h3>
+  <p>Per location, per platform (Google / Meta / Microsoft):</p>
+  <ul>
+    <li><strong>Firing</strong> — conversions recorded in the last 24 hours</li>
+    <li><strong>Not Firing</strong> — has historical data but zero conversions in last 24h</li>
+    <li><strong>Unknown</strong> — no snapshot data yet (or platform not connected)</li>
+  </ul>
+
+  <h3>Data source</h3>
+  <p>Reads from <code>sem_platform_daily_snapshots</code> — the same table populated by the daily spend reporting job. Conversion data starts building after platforms are connected.</p>
+
+  <h3>History threshold</h3>
+  <p>The "has history" flag requires 60 days of snapshot data. Before 60 days, the page shows "Conversion history builds after 60 days of platform snapshot ingestion."</p>
+</section>
+
+<!-- ═══ SECTION 10 — Settings ═══ -->
+<section class="section" id="settings">
+  <h2>10. Settings</h2>
+  <p>Three settings sections: Integrations, GBP, and Meta.</p>
+
+  <h3>Settings → Integrations</h3>
+  <p>Shows all platform connections with status badges:</p>
+  <table>
+    <thead><tr><th>Integration</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Clerk Auth</strong></td><td><span class="badge badge-live">Live</span></td><td>Multi-role: super_admin, org_admin, location_manager, viewer</td></tr>
+      <tr><td><strong>Supabase</strong></td><td><span class="badge badge-live">Live</span></td><td>17 tables, RLS, HIPAA-isolated leads table</td></tr>
+      <tr><td><strong>Twilio SMS</strong></td><td><span class="badge badge-live">Live</span></td><td>NuStack master account — 60-second speed-to-lead</td></tr>
+      <tr><td><strong>Resend Email</strong></td><td><span class="badge badge-live">Live</span></td><td>Weekly reports + nurture emails</td></tr>
+      <tr><td><strong>Inngest</strong></td><td><span class="badge badge-live">Live</span></td><td>15 background functions — see Section 11</td></tr>
+      <tr><td><strong>Anthropic Claude</strong></td><td><span class="badge badge-live">Live</span></td><td>claude-sonnet-4-6 — insights, review responses, posts, reports</td></tr>
+      <tr><td><strong>PostHog</strong></td><td><span class="badge badge-live">Live</span></td><td>A/B testing on landing pages + product analytics</td></tr>
+      <tr><td><strong>Google Business Profile</strong></td><td><span class="badge badge-pending">Action Required</span></td><td>OAuth credentials set — refresh token needed. Go to Settings → GBP</td></tr>
+      <tr><td><strong>CallRail</strong></td><td><span class="badge badge-pending">Action Required</span></td><td>CallRail Healthcare plan required. Sign up at callrail.com/healthcare</td></tr>
+      <tr><td><strong>Google Ads API</strong></td><td><span class="badge badge-pending">Pending Approval</span></td><td>Explorer Access active, Standard token application submitted (~2–6 weeks)</td></tr>
+      <tr><td><strong>Meta Ads API</strong></td><td><span class="badge badge-pending">Pending</span></td><td>Business Verification in review (~2 days). Connect via Settings → Meta once approved</td></tr>
+      <tr><td><strong>Microsoft Advertising</strong></td><td><span class="badge badge-blocked">Blocked</span></td><td>Blocked on Azure App Registration OAuth. Agency MCC: G120QEFZ</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Settings → GBP</h3>
+  <p>Connect your agency Google account to enable review automation and weekly post generation.</p>
+  <ol>
+    <li>Click "Connect Google Account"</li>
+    <li>Authorize the OAuth flow</li>
+    <li>Copy the refresh token shown and add it to Vercel env as <code>GBP_REFRESH_TOKEN</code></li>
+    <li>Redeploy</li>
+    <li>Make sure each client's GBP location has added your agency Google account as Manager</li>
+  </ol>
+
+  <h3>Settings → Meta</h3>
+  <p>Connect Meta Ads once Business Verification completes. OAuth flow via this page. Requires <code>META_APP_ID</code> and <code>META_APP_SECRET</code> to be set in env.</p>
+
+  <h3>HIPAA pixel compliance</h3>
+  <p>No Meta Pixel or Google Tag is placed on health pages. All conversion tracking is server-side via Inngest + offline conversion uploads. GCLID is captured server-side and uploaded to Google Ads as offline conversions. Meta uses CAPI only with LDU flag. The <code>leads</code> table is service_role only — no direct client access to raw PII.</p>
+</section>
+
+<!-- ═══ SECTION 11 — What Runs Automatically ═══ -->
+<section class="section" id="auto">
+  <h2>11. What Runs Automatically</h2>
+  <p>Everything below runs without you touching anything. These are Inngest background functions — they fire on a schedule or in response to events.</p>
+
+  <div class="cron-block">
+    <div class="cron-title">Daily Spend Reporting <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every day at 6:00 AM UTC</div>
+    <p>Pulls yesterday's spend data from Google, Meta, and Microsoft (if connected and feature flags are set). Writes spend, clicks, and impressions into <code>spend_records</code> per campaign per platform. This is what populates the spend chart and MTD cards on the Campaigns page.</p>
+    <p>If a platform API call fails, it logs the error and returns — it does not retry automatically.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">QS Daily Snapshot <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every day at 6:00 AM UTC</div>
+    <p>Pulls Quality Score data from Google Ads API per organization. Writes to <code>sem_platform_daily_snapshots</code>. Currently using placeholder data (real Google Ads API call pending Standard token approval). Powers the Conversion Health page and the context-builder for AI prompts.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">GCLID 90-Day Purge <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every day at 2:00 AM UTC</div>
+    <p>Deletes leads from the <code>leads</code> table where source = <code>google_ads</code>, no conversion was recorded (<code>converted_at</code> is null), and the lead is older than 90 days. This is a HIPAA data retention requirement (Ch 54 compliance). Logs the purge count. If it fails, logs the error — does not alert.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Budget Pacing Check <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every 4 hours</div>
+    <p>For each active budget allocation, compares actual spend vs. weighted expected spend (day-of-week weights + holiday detection). If overspending by >15%, reduces daily budget by 10%. If underspending by >15%, increases by 10%. Maximum daily budget is capped at 110% of (monthly budget ÷ 28). Skips platforms with feature flags disabled.</p>
+    <p>Day weights: Monday 1.2x, Thursday 1.15x, Friday 0.9x, Saturday 0.75x, Sunday 0.8x. Holidays reduce expected spend by 50%.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">GBP Review Fetch &amp; AI Draft <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every 4 hours</div>
+    <p>For each location with a GBP profile, fetches all reviews from the GBP API. For each new review (not already in the DB), generates an AI draft response using Claude and saves it with status = <code>pending</code>. Updates the review count and last-synced timestamp on the GBP profile record.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Auction Insights Weekly Pull <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every Monday at 7:00 AM UTC</div>
+    <p>Pulls competitor auction insights from Google Ads (impression share, overlap rate, outranking share) into <code>sem_competitive_snapshots</code>. Currently using placeholder data pending Google Ads Standard token. This data feeds into the AI context-builder for escalation and optimization prompts.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Optimization Cadence Weekly <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every Monday at 7:30 AM UTC</div>
+    <p>Reviews the past 7 days of spend data per org. If an account spent >$500 with zero conversions, it creates a Level 3 alert in <code>sem_platform_automated_actions</code> tagged for the <code>#marketing-engine-alerts</code> Slack channel. This catches the worst-case scenario (money spending, nothing booking) automatically.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">GBP Weekly Post Generation <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every Monday at 9:00 AM UTC</div>
+    <p>Generates 4 GBP post variants per active location using Claude. Schedules them 2 days apart. If GBP OAuth is connected, publishes directly to GBP at 6-second intervals (API rate limit). Posts that fail to publish get flagged as <code>failed</code> in the DB.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Weekly AI Performance Insights <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every Sunday at midnight UTC</div>
+    <p>For each active location, aggregates the past 7 days of lead and spend data. Sends to Claude with context (leads, booked leads, booking rate, spend, CPL). Saves the AI-generated analysis to the <code>ai_insights</code> table. This is what appears in the Dashboard Overview AI Insights section.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Monday Weekly Report Email <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Every Monday at 8:00 AM UTC</div>
+    <p>For each active location with <code>weekly_report_enabled = true</code>: aggregates this week vs. last week metrics, fetches org admin emails from Clerk, generates an AI narrative summary, and sends an HTML report email via Resend to all org admins. Stores the report in <code>sem_weekly_reports</code>. Generates quality rating tokens (1–5) for the lead quality feedback block in the email.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Campaign Factory <span class="badge badge-auto">Event-Triggered</span></div>
+    <div class="cron-schedule">Fires on: location/activated event</div>
+    <p>Triggered when a new location is activated. Runs pre-flight compliance check, generates RSA copy + Meta copy + sitelinks + callouts using Claude. Creates campaigns on Google Ads (if feature enabled), Microsoft Ads (if feature enabled), and Meta (if feature enabled). Writes campaign records to DB. Updates location status to <code>complete</code> or <code>failed</code>.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Lead Nurture Sequence <span class="badge badge-auto">Event-Triggered</span></div>
+    <div class="cron-schedule">Fires on: lead/created event</div>
+    <p>5-step sequence per lead: SMS (immediate) → email (2h) → retargeting event (24h) → internal alert (72h) → final SMS (7 days). Each step checks if the lead was booked or paused before sending. All nurture events are logged to <code>nurture_events</code> table.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">IP Exclusion Auto-Apply <span class="badge badge-auto">Event-Triggered</span></div>
+    <div class="cron-schedule">Fires on: sem/click.suspicious event</div>
+    <p>Handles suspicious click detection. When a suspicious click is detected, logs a Level 1 auto-applied action in <code>sem_platform_automated_actions</code>. Will apply the IP exclusion to Google Ads via CampaignCriterionService once the Google Ads API Standard token is approved.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">PES Critical Alert <span class="badge badge-auto">Event-Triggered</span></div>
+    <div class="cron-schedule">Fires on: pes/calculated event (only when PES &lt; 55)</div>
+    <p>PES = Platform Efficiency Score (composite of ROAS, pacing, Quality Score, creative health). When PES drops below 55, this function: identifies the lowest-scoring component, generates a diagnostic paragraph using Claude, logs the alert to <code>sem_pes_alerts</code>, sends a Slack message (if <code>SLACK_ALERT_WEBHOOK_URL</code> is set), sends an email to Brad. Then waits 24 hours — if the alert isn't marked resolved, sends a follow-up escalation email.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Copy Result Feedback Loop <span class="badge badge-auto">Event-Triggered</span></div>
+    <div class="cron-schedule">Fires on: sem/copy.result.recorded event</div>
+    <p>Updates <code>sem_copy_performance_log</code> with the test result (WINNER / LOSER / INCONCLUSIVE) for a copy variant. This log feeds into the AI context-builder, which injects top 5 / bottom 5 copy variants into escalation prompts.</p>
+  </div>
+
+  <div class="cron-block">
+    <div class="cron-title">Weekly Cron Report API <span class="badge badge-auto">Scheduled</span></div>
+    <div class="cron-schedule">Weekly (via /api/cron/weekly-report)</div>
+    <p>An additional cron endpoint for generating weekly reports. Can be triggered externally (e.g., Vercel cron). Works alongside the Inngest weekly-report-email function.</p>
+  </div>
+</section>
+
+<!-- ═══ SECTION 12 — Troubleshooting ═══ -->
+<section class="section" id="troubleshooting">
+  <h2>12. Troubleshooting</h2>
+
+  <div class="card">
+    <div class="card-title">Campaign won't launch — shows status "paused" or "failed"</div>
+    <p>Check the <code>campaign_factory_notes</code> column on the location record in Supabase. If it says "Compliance violations", the copy generated contained prohibited terms (Rx drug names, etc). Check <code>campaign_factory_status</code> — if it's <code>running</code>, the factory is still in progress. If it's <code>failed</code>, check <code>campaign_factory_notes</code> for the specific gate that blocked it (most common: TCPA not confirmed on the compliance profile).</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Lead came in but no SMS was sent</div>
+    <p>Check the <code>nurture_events</code> table for this lead. If step 1 shows status = <code>failed</code>, Twilio rejected the SMS — likely a number formatting issue or Twilio account balance/status. Confirm <code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code>, and <code>TWILIO_FROM_NUMBER</code> are set in Doppler. Check Twilio dashboard for the error code on the failed message.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Campaign on HOLD unexpectedly</div>
+    <p>Campaign status changes to <code>paused</code> in two scenarios: (1) the campaign was created as a placeholder while platform API approval is pending, or (2) a budget pacing rule reduced the daily budget to the $5 minimum and a manual pause followed. Check the <code>budget_allocations</code> table for the <code>current_daily_budget</code> value. The pacing job runs every 4 hours — if daily budget hit $5 and remained there, spend data suggests the campaign is severely over-pacing.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Weekly report not sending</div>
+    <p>Check Inngest dashboard for the <code>weekly-report-email</code> function run for that Monday. Common causes: (1) <code>weekly_report_enabled</code> is false on the location, (2) no Clerk org admins have a primary email address, (3) Resend API key is not set in Doppler. The function logs errors to Inngest — check the step that failed.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">GBP post not publishing</div>
+    <p>Check the <code>gbp_posts</code> table for status = <code>failed</code>. This means the GBP API call failed. Most common cause: the <code>GBP_REFRESH_TOKEN</code> env var is missing or the token has expired. Go to Settings → GBP and reconnect the Google account to generate a fresh refresh token. Add the new token to Vercel env and redeploy.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Reviews not showing up in the Reviews section</div>
+    <p>The review sync runs every 4 hours. If nothing is showing: (1) confirm GBP OAuth is connected (Settings → GBP shows "Connected"), (2) confirm the location has <code>gbp_location_id</code> set, (3) check the <code>gbp_profiles</code> table for the location — <code>last_synced_at</code> will tell you when the last sync ran. If <code>last_synced_at</code> is stale, the GBP API may be returning an error — check Inngest dashboard for the <code>gbp-reviews</code> function.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Conversion Health showing "Not Firing" when it should be</div>
+    <p>The conversion health dashboard reads from <code>sem_platform_daily_snapshots</code>, populated by the daily spend reporting cron. If Google/Meta/Microsoft feature flags are off, no snapshots are written. If the cron is running but conversions are zero, that's accurate — the platform isn't recording conversions. Also note: the status shows "Unknown" until 60 days of history exist.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">AI Insights not appearing on dashboard</div>
+    <p>Insights first generate after 7 days of data. The job runs every Sunday at midnight UTC. If it's been more than 7 days and still no insights: check the Inngest dashboard for the <code>ai-insights</code> function run on the most recent Sunday. If the step "gather-performance-data" returned 0 leads and 0 spend, there's no data to analyze and no insight is written.</p>
+  </div>
+</section>
+
+<!-- ═══ SECTION 13 — Glossary ═══ -->
+<section class="section" id="glossary">
+  <h2>13. Glossary</h2>
+  <table>
+    <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Campaign Factory</strong></td><td>Inngest function that auto-creates ad campaigns when a new location is activated. Handles compliance check, copy generation, and platform API provisioning.</td></tr>
+      <tr><td><strong>CPL</strong></td><td>Cost Per Lead — total ad spend divided by total leads in a period.</td></tr>
+      <tr><td><strong>GCLID</strong></td><td>Google Click ID — unique identifier appended to URLs by Google Ads when someone clicks an ad. Captured server-side for offline conversion tracking.</td></tr>
+      <tr><td><strong>GBP</strong></td><td>Google Business Profile — Google's local business listing system. The engine automates review responses and weekly posts for each location's GBP listing.</td></tr>
+      <tr><td><strong>HIPAA Pixel Guard</strong></td><td>The system's policy of no client-side tracking on health pages. All conversion data flows server-side via Inngest to prevent PHI from entering ad platform data layers.</td></tr>
+      <tr><td><strong>Inngest</strong></td><td>The background job infrastructure. All scheduled jobs (crons) and event-triggered workflows run here. Inngest handles retries, step tracking, and sleep/wait logic.</td></tr>
+      <tr><td><strong>Landing Page Score</strong></td><td>A 0–100 quality score for each landing page. Must be ≥ 65 for a campaign to activate. Evaluated via SiteGrade.</td></tr>
+      <tr><td><strong>Lead Quality Rating</strong></td><td>The 1–5 rating in the weekly report email. Used by Brad to signal whether the week's leads were high quality. Feeds into the AI narrative over time.</td></tr>
+      <tr><td><strong>Nurture Sequence</strong></td><td>The automated 5-step follow-up workflow triggered for every new lead: SMS → email → retarget → internal alert → final SMS.</td></tr>
+      <tr><td><strong>Org</strong></td><td>An organization in Clerk. Typically maps to one clinic operator. Can have multiple locations.</td></tr>
+      <tr><td><strong>PES</strong></td><td>Platform Efficiency Score — composite score (0–100) of ROAS, pacing, Quality Score, and creative health for an account. Scores below 55 trigger an automated alert to Brad.</td></tr>
+      <tr><td><strong>Pre-Flight Check</strong></td><td>The set of validation gates the Campaign Factory runs before activating a campaign. BLOCK gates = campaign cannot go live. All must pass.</td></tr>
+      <tr><td><strong>RSA</strong></td><td>Responsive Search Ad — Google's standard ad format with multiple headline and description options. The engine generates RSA copy using Claude.</td></tr>
+      <tr><td><strong>Spend Records</strong></td><td>Daily rows in the <code>spend_records</code> table — one per campaign per platform per day. Populated by the daily spend reporting cron.</td></tr>
+      <tr><td><strong>TCPA</strong></td><td>Telephone Consumer Protection Act. Requires opt-in language on lead forms before the system can send SMS messages. Confirmed via the compliance profile — missing TCPA = campaign blocked.</td></tr>
+      <tr><td><strong>Weekly Report</strong></td><td>The Monday morning email sent to each org admin. Contains lead volume, booking metrics, ad spend, and an AI-generated narrative. Stored in <code>sem_weekly_reports</code>.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+</div>
+
+<script>
+  // Search
+  const searchInput = document.getElementById('search');
+  const sections = document.querySelectorAll('.section');
+
+  searchInput.addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    sections.forEach(function(section) {
+      if (!q) {
+        section.classList.remove('hidden');
+      } else {
+        const text = section.textContent.toLowerCase();
+        if (text.includes(q)) {
+          section.classList.remove('hidden');
+        } else {
+          section.classList.add('hidden');
+        }
+      }
+    });
+  });
+
+  // Hamburger
+  const hamburger = document.getElementById('hamburger');
+  const sidebar = document.getElementById('sidebar');
+  hamburger.addEventListener('click', function() {
+    sidebar.classList.toggle('open');
+  });
+
+  // Sidebar active link on scroll
+  const sidebarLinks = document.querySelectorAll('#sidebar a');
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        sidebarLinks.forEach(function(link) {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(function(section) {
+    observer.observe(section);
+  });
+
+  // Close sidebar on link click (mobile)
+  sidebarLinks.forEach(function(link) {
+    link.addEventListener('click', function() {
+      sidebar.classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>

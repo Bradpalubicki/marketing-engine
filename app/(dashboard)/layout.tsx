@@ -4,8 +4,9 @@ import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { BarChart3, MapPin, Users, TrendingUp, Megaphone, Star, FileText, Settings, FileImage, Menu, X, Activity } from 'lucide-react'
+import { BarChart3, MapPin, Users, TrendingUp, Megaphone, Star, FileText, Settings, FileImage, Menu, X, Activity, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { HelpAgent } from '@/components/help/HelpAgent'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3, exact: true },
@@ -18,6 +19,7 @@ const navItems = [
   { href: '/dashboard/reports', label: 'Reports', icon: FileText, exact: false },
   { href: '/dashboard/tracking', label: 'Conv. Health', icon: Activity, exact: false },
   { href: '/dashboard/settings/integrations', label: 'Settings', icon: Settings, exact: false },
+  { href: '/help', label: 'Help / Manual', icon: BookOpen, exact: false },
 ]
 
 function NavLinks({ onItemClick }: { onItemClick?: () => void }) {
@@ -119,6 +121,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 overflow-auto md:ml-0 mt-14 md:mt-0">
         {children}
       </main>
+
+      {/* Help Agent — floating chat widget */}
+      <HelpAgent />
     </div>
   )
 }
