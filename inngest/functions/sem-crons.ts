@@ -14,7 +14,7 @@ export const qsDailySnapshot = inngest.createFunction(
   async ({ logger }) => {
     const { data: orgs, error } = await supabaseAdmin
       .from('organizations')
-      .select('id, google_ads_customer_id')
+      .select('id, google_ads_customer_id, vertical_tag')
       .not('google_ads_customer_id', 'is', null)
 
     if (error) {
@@ -37,9 +37,10 @@ export const qsDailySnapshot = inngest.createFunction(
         impressions: 0,
         clicks: 0,
         conversions: 0,
-        cost_micros: 0,
+        spend: 0,
         quality_score_avg: null,
         impression_share: null,
+        vertical_tag: org.vertical_tag ?? null,
         source: 'qs_daily_snapshot',
       }
 
@@ -121,7 +122,7 @@ export const optimizationCadenceWeekly = inngest.createFunction(
   async ({ logger }) => {
     const { data: snapshots, error } = await supabaseAdmin
       .from('sem_platform_daily_snapshots')
-      .select('org_id, cost_micros, impressions, clicks, conversions')
+      .select('org_id, spend, impressions, clicks, conversions')
       .gte('snapshot_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
 
     if (error) {
@@ -133,7 +134,7 @@ export const optimizationCadenceWeekly = inngest.createFunction(
     const orgMetrics: Record<string, { cost: number; conversions: number; clicks: number }> = {}
     for (const s of snapshots ?? []) {
       if (!orgMetrics[s.org_id]) orgMetrics[s.org_id] = { cost: 0, conversions: 0, clicks: 0 }
-      orgMetrics[s.org_id].cost += (s.cost_micros ?? 0) / 1_000_000
+      orgMetrics[s.org_id].cost += s.spend ?? 0
       orgMetrics[s.org_id].conversions += s.conversions ?? 0
       orgMetrics[s.org_id].clicks += s.clicks ?? 0
     }

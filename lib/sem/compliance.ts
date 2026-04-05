@@ -25,26 +25,31 @@ export function isPMaxEligible(profile: ClientComplianceProfile): boolean {
 }
 
 /**
- * Returns true only when ALL hard gates pass.
- * Used to set launch_blocked = false in DB.
+ * 60% gate — enough client intel to generate copy, keywords, and campaign structure.
+ * Unlocks the campaign builder UI. Does NOT authorize ad spend.
  */
-export function isLaunchReady(profile: ClientComplianceProfile): boolean {
-  return (
-    profile.completeness_score === 100 &&
-    profile.tcpa_confirmed === true &&
-    profile.vertical_compliance_passed === true &&
-    profile.launch_blocked === false
-  )
+export function isCampaignBuildReady(org: { completeness_score: number }): boolean {
+  return org.completeness_score >= 60
 }
 
 /**
- * Computes whether the compliance profile should hard-block launch.
+ * 100% gate — all compliance fields confirmed including TCPA.
+ * Required before any campaign goes live and spends client money.
+ * Controlled by launch_blocked field on organization.
+ */
+export function isAdSpendReady(org: { completeness_score: number; tcpa_confirmed: boolean }): boolean {
+  return org.completeness_score === 100 && org.tcpa_confirmed === true
+}
+
+/**
+ * Computes whether the compliance profile should hard-block ad spend.
  * Vertical compliance failure = hard block (red gate badge, not yellow).
+ * Uses isAdSpendReady — launch_blocked = true only when isAdSpendReady returns false.
  */
 export function computeLaunchBlocked(profile: Omit<ClientComplianceProfile, 'launch_blocked'>): boolean {
   if (!profile.tcpa_confirmed) return true
   if (!profile.vertical_compliance_passed) return true
-  if (profile.completeness_score < 100) return true
+  if (!isAdSpendReady(profile)) return true
   return false
 }
 

@@ -27,13 +27,13 @@ export async function buildPromptContext(input: EnrichmentContext): Promise<stri
   // 1. Last 7-day performance snapshots
   const { data: snapshots } = await supabaseAdmin
     .from('sem_platform_daily_snapshots')
-    .select('snapshot_date, platform, impressions, clicks, conversions, cost_micros')
+    .select('snapshot_date, platform, impressions, clicks, conversions, spend')
     .eq('org_id', orgId)
     .gte('snapshot_date', sevenDaysAgo)
     .order('snapshot_date', { ascending: false })
 
   if (snapshots && snapshots.length > 0) {
-    const totalCost = snapshots.reduce((sum, s) => sum + (s.cost_micros ?? 0) / 1_000_000, 0)
+    const totalCost = snapshots.reduce((sum, s) => sum + (s.spend ?? 0), 0)
     const totalConversions = snapshots.reduce((sum, s) => sum + (s.conversions ?? 0), 0)
     const totalClicks = snapshots.reduce((sum, s) => sum + (s.clicks ?? 0), 0)
     const cpa = totalConversions > 0 ? (totalCost / totalConversions).toFixed(2) : 'N/A'

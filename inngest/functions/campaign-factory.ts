@@ -235,7 +235,7 @@ export const campaignFactory = inngest.createFunction(
         const platformCampaignId = await createMicrosoftCampaign(microsoftAccountId, {
           name: `${locationName} - Search - Men's Health`,
           dailyBudget: microsoftDailyBudget,
-          biddingStrategy: 'EnhancedCpc',
+          biddingStrategy: 'ManualCpc', // EnhancedCpc deprecated — removed per CA Gap Directive 2026-04-05
         })
 
         await supabaseAdmin.from('campaigns').insert({
@@ -247,7 +247,7 @@ export const campaignFactory = inngest.createFunction(
           status: 'active',
           daily_budget: microsoftDailyBudget,
           monthly_budget: adBudgetMonthly * 0.4,
-          bidding_strategy: 'ENHANCED_CPC',
+          bidding_strategy: 'MANUAL_CPC',
         })
 
         return { created: true, platformCampaignId }
@@ -262,7 +262,7 @@ export const campaignFactory = inngest.createFunction(
           status: 'paused',
           daily_budget: microsoftDailyBudget,
           monthly_budget: adBudgetMonthly * 0.4,
-          bidding_strategy: 'ENHANCED_CPC',
+          bidding_strategy: 'MANUAL_CPC', // EnhancedCpc deprecated — removed per CA Gap Directive 2026-04-05
         })
         return { skipped: true, reason: 'FEATURE_MICROSOFT_ADS disabled or no account ID' }
       })

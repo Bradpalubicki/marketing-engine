@@ -81,7 +81,7 @@ export async function createCampaign(
           DailyBudget: params.dailyBudget,
           BudgetType: 'DailyBudgetStandard',
           BiddingScheme: {
-            Type: 'EnhancedCpc',
+            Type: 'ManualCpc', // EnhancedCpc deprecated — removed per CA Gap Directive 2026-04-05
           },
           CampaignType: 'Search',
           Status: 'Paused',

@@ -21,6 +21,12 @@ export interface Organization {
   google_ads_customer_id: string | null
   meta_ad_account_id: string | null
   monthly_ad_budget: number | null
+  // Ch 8 Client Intelligence fields (added via migration 009)
+  completeness_score: number
+  tcpa_confirmed: boolean
+  launch_blocked: boolean
+  vertical_tag: string | null
+  business_category: string | null
   created_at: string
 }
 

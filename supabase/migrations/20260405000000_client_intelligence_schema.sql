@@ -1,3 +1,8 @@
+-- SUPERSEDED by 009_extend_organizations_client_intelligence.sql
+-- Decision: organizations is canonical. This migration's tables (clients, client_intelligence,
+-- completeness_scores, vertical_assignments) are dropped in migration 009.
+-- Do NOT apply this migration to any environment. Kept for history only.
+--
 -- Client Intelligence Schema for Marketing Engine
 -- Migration: 20260405000000_client_intelligence_schema
 -- Created: 2026-04-05
