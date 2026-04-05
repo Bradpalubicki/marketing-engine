@@ -1,3 +1,18 @@
+## REPO IDENTITY
+ENGINE_NAME=marketing-engine
+DOPPLER_PROJECT=marketing-engine
+GLOBAL_HUB_PAGE_ID=338663704e40814aaa92fd7293923e4f
+RUN_QUESTIONS_VERSION=v4.3
+
+## SESSION START PROTOCOL
+1. Read this file top to bottom.
+2. Extract GLOBAL_HUB_PAGE_ID from REPO IDENTITY block above.
+3. Fetch that Notion page in one API call. Read it. Internalize it. Do not summarize aloud.
+4. You now have full fleet context. Begin work.
+5. Check Agent Inbox (32f663704e4081f3ac93e81a3782412a). Read open tasks. Begin the top task.
+6. Do not ask Brad what the system state is. The hub tells you.
+
+
 ## Global Living System
 
 Read this before every session: https://www.notion.so/32f663704e4081afb964eddeab7b40e1
