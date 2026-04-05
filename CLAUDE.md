@@ -30,7 +30,7 @@ NuStack Patient Acquisition Engine. PPC + GBP automation for multi-location men'
 Full Layer 0 spec: `MARKETING-ENGINE-SPEC.md` in this repo root — read before any build work.
 
 ## Stack
-Next.js 16, Supabase, Clerk (super_admin/org_admin/location_manager/viewer), Square, Twilio, Resend, Inngest, PostHog, Sentry, Claude claude-sonnet-4-6, TypeScript strict, react-hook-form + zod, Tailwind + shadcn/ui
+Next.js 16, Supabase, Clerk (super_admin/org_admin/location_manager/viewer), Stripe, Twilio, Resend, Inngest, PostHog, Sentry, claude-sonnet-4-6, TypeScript strict, react-hook-form + zod, Tailwind + shadcn/ui
 
 ## Build Phases
 - **Phase 1** (build now): Core platform + lead engine + 60s SMS nurture + CallRail + attribution dashboard
@@ -56,7 +56,7 @@ Next.js 16, Supabase, Clerk (super_admin/org_admin/location_manager/viewer), Squ
 ## Env Vars Needed
 `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_CLIENT_ID/SECRET/REFRESH_TOKEN`, `GOOGLE_ADS_MCC_CUSTOMER_ID`,
 `META_APP_ID/SECRET`, `META_SYSTEM_USER_TOKEN`, `META_BUSINESS_MANAGER_ID`,
-`GBP_CLIENT_ID/SECRET/REFRESH_TOKEN`, `CALLRAIL_API_KEY/ACCOUNT_ID`, `FRESHPAINT_SOURCE_TOKEN`,
+`GBP_CLIENT_ID/SECRET/REFRESH_TOKEN`, `CALLRAIL_API_KEY/ACCOUNT_ID`,
 plus standard NuStack stack vars (Clerk, Supabase, Twilio, Resend, Inngest, Anthropic, PostHog, Sentry)
 
 ## Key Files

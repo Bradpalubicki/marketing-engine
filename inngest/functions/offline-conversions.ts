@@ -79,7 +79,7 @@ export const offlineConversions = inngest.createFunction(
             await uploadGoogle({
               customerId: org.google_ads_customer_id,
               gclid: lead.gclid,
-              conversionName: item.conversion_name ?? 'lead_booked',
+              conversionName: item.conversion_name ?? 'Booked Appointment',
               conversionTime: item.conversion_time ?? new Date().toISOString(),
               conversionValue: item.conversion_value ?? 0,
             })
@@ -150,7 +150,7 @@ export const offlineConversions = inngest.createFunction(
           await uploadMicrosoft({
             accountId: org.microsoft_ads_account_id,
             msclkid: lead.msclkid,
-            conversionName: lead.status === 'showed' ? 'patient_showed' : 'lead_booked',
+            conversionName: lead.status === 'showed' ? 'patient_showed' : 'Booked Appointment',
             conversionTime: lead.created_at ?? new Date().toISOString(),
             conversionValue: lead.status === 'showed' ? 250 : 50,
             currencyCode: 'USD',

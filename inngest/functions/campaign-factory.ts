@@ -178,7 +178,8 @@ export const campaignFactory = inngest.createFunction(
         const platformCampaignId = await createGoogleCampaign(googleCustomerId, {
           name: `${locationName} - Search - Men's Health`,
           dailyBudgetMicros: Math.round(googleDailyBudget * 1_000_000),
-          biddingStrategy: 'MAXIMIZE_CONVERSIONS',
+          // Switched to MANUAL_CPC $2.00 — upgrade to TARGET_CPA after 30 conversions
+          biddingStrategy: 'MANUAL_CPC',
         })
 
         await supabaseAdmin.from('campaigns').insert({
@@ -190,7 +191,8 @@ export const campaignFactory = inngest.createFunction(
           status: 'active',
           daily_budget: googleDailyBudget,
           monthly_budget: adBudgetMonthly * 0.6,
-          bidding_strategy: 'MAXIMIZE_CONVERSIONS',
+          // Switched to MANUAL_CPC $2.00 — upgrade to TARGET_CPA after 30 conversions
+          bidding_strategy: 'MANUAL_CPC',
         })
 
         return {
@@ -211,7 +213,8 @@ export const campaignFactory = inngest.createFunction(
           status: 'paused',
           daily_budget: googleDailyBudget,
           monthly_budget: adBudgetMonthly * 0.6,
-          bidding_strategy: 'MAXIMIZE_CONVERSIONS',
+          // Switched to MANUAL_CPC $2.00 — upgrade to TARGET_CPA after 30 conversions
+          bidding_strategy: 'MANUAL_CPC',
         })
         return { skipped: true, reason: 'FEATURE_GOOGLE_ADS disabled or no customer ID' }
       })
