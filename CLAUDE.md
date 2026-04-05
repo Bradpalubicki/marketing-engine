@@ -35,7 +35,7 @@ Next.js 16, Supabase, Clerk (super_admin/org_admin/location_manager/viewer), Str
 ## Build Phases
 - **Phase 1** (build now): Core platform + lead engine + 60s SMS nurture + CallRail + attribution dashboard
 - **Phase 2** (build now): GBP automation — OAuth, AI review responses, weekly auto-posts
-- **Phase 3** (BLOCKED): Google Ads Campaign Factory — needs Standard developer token (2–6 week approval)
+- **Phase 3** (READY): Google Ads Campaign Factory — all 6 credentials confirmed in Vercel + Doppler prd (2026-04-05)
 - **Phase 4** (BLOCKED): Meta Ads — needs Meta App Review Advanced Access (2–4 weeks)
 - **Phase 5**: Advanced attribution + AI insights engine
 
@@ -47,7 +47,7 @@ Next.js 16, Supabase, Clerk (super_admin/org_admin/location_manager/viewer), Str
 - **Leads table**: service_role only — no direct client access to raw PII
 
 ## Brad Action Items (BLOCKERS — start immediately)
-1. Google Ads MCC → apply for Standard developer token at ads.google.com
+1. ~~Google Ads MCC → apply for Standard developer token~~ — RESOLVED 2026-04-05, all creds live
 2. Meta Business Manager → Business Verification → System User → Advanced Access for ads_management
 3. CallRail Healthcare plan + BAA (~$130/mo)
 4. Google Cloud project → enable Google Ads API + GBP API + OAuth credentials
