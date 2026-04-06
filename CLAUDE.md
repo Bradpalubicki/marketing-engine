@@ -80,3 +80,12 @@ plus standard NuStack stack vars (Clerk, Supabase, Twilio, Resend, Inngest, Anth
 
 ## Demo Line (for Robert Sek)
 "We haven't touched your Google Ads account yet. We already responded to 3 Google reviews with AI, published 4 GBP posts, and sent 6 leads their appointment confirmation within 60 seconds."
+
+## Brad Visibility Rules
+Brad Visibility Rules: https://www.notion.so/33a663704e408157bfc5e85d034895cb
+Before writing any NEEDS BRAD item:
+  - Tier 1 (system handles it): do NOT surface to Brad. Log in CLAUDE.md only.
+  - Tier 2 (action card needed): file to /api/credential-actions. Do NOT put in chat.
+  - Tier 3 (production affected): fire Twilio SMS via agency-engine. Then log.
+  - Tier 4 (genuine decision): surface to Brad in chat as A vs B with CA recommendation.
+Default: if you're unsure which tier, it's Tier 2. File a card, not a chat message.
