@@ -31,7 +31,7 @@ export const qsDailySnapshot = inngest.createFunction(
       // GoogleAdsClient → KeywordViewService → keyword_view.quality_info
       const snapshotDate = new Date().toISOString().split('T')[0]
       const placeholder = {
-        org_id: org.id,
+        location_id: org.id,
         snapshot_date: snapshotDate,
         platform: 'google',
         impressions: 0,
@@ -46,7 +46,7 @@ export const qsDailySnapshot = inngest.createFunction(
 
       const { error: insertError } = await supabaseAdmin
         .from('sem_platform_daily_snapshots')
-        .upsert(placeholder, { onConflict: 'org_id,snapshot_date,platform' })
+        .upsert(placeholder, { onConflict: 'location_id,snapshot_date,platform' })
 
       if (insertError) {
         logger.error('QS snapshot insert failed', { orgId: org.id, error: insertError })
