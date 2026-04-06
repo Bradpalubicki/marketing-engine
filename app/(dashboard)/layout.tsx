@@ -7,6 +7,8 @@ import { useState } from 'react'
 import { BarChart3, MapPin, Users, TrendingUp, Megaphone, Star, FileText, Settings, FileImage, Menu, X, Activity, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { HelpAgent } from '@/components/help/HelpAgent'
+import { HelpPanel } from '@/components/help-panel'
+import { OnboardingTooltips } from '@/components/onboarding-tooltips'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: BarChart3, exact: true },
@@ -19,7 +21,7 @@ const navItems = [
   { href: '/dashboard/reports', label: 'Reports', icon: FileText, exact: false },
   { href: '/dashboard/tracking', label: 'Conv. Health', icon: Activity, exact: false },
   { href: '/dashboard/settings/integrations', label: 'Settings', icon: Settings, exact: false },
-  { href: '/help', label: 'Help / Manual', icon: BookOpen, exact: false },
+  { href: '/dashboard/help', label: 'Help / Manual', icon: BookOpen, exact: false },
 ]
 
 function NavLinks({ onItemClick }: { onItemClick?: () => void }) {
@@ -124,6 +126,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Help Agent — floating chat widget */}
       <HelpAgent />
+      {/* Page guide panel — slide-in contextual help */}
+      <HelpPanel />
+      {/* First-time onboarding walkthrough */}
+      <OnboardingTooltips />
     </div>
   )
 }
