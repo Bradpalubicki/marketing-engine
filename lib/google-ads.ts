@@ -9,7 +9,7 @@ export async function createCustomerAccount(params: {
   const mccId = process.env.GOOGLE_ADS_MCC_CUSTOMER_ID!
 
   const response = await fetch(
-    `${GOOGLE_ADS_BASE}/customers/${mccId}/customers:createCustomerClient`,
+    `${GOOGLE_ADS_BASE}/customers/${mccId}:createCustomerClient`,
     {
       method: 'POST',
       headers: getHeaders(token),
@@ -47,7 +47,12 @@ async function getGoogleAccessToken(): Promise<string> {
       grant_type: 'refresh_token',
     }),
   })
-  const data = (await response.json()) as { access_token: string }
+  const data = (await response.json()) as { access_token?: string; error?: string; error_description?: string }
+  if (!response.ok || !data.access_token) {
+    throw new Error(
+      `Google OAuth token exchange failed: ${data.error ?? response.status} — ${data.error_description ?? 'no access_token returned'}. Re-run the OAuth consent flow to get a fresh GOOGLE_ADS_REFRESH_TOKEN.`
+    )
+  }
   return data.access_token
 }
 
