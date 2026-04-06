@@ -35,9 +35,19 @@ Next.js 16, Supabase, Clerk (super_admin/org_admin/location_manager/viewer), Str
 ## Build Phases
 - **Phase 1** (build now): Core platform + lead engine + 60s SMS nurture + CallRail + attribution dashboard
 - **Phase 2** (build now): GBP automation — OAuth, AI review responses, weekly auto-posts
-- **Phase 3** (READY): Google Ads Campaign Factory — all 6 credentials confirmed in Vercel + Doppler prd (2026-04-05)
+- **Phase 3** (COMPLETE 2026-04-06): Client Intelligence layer — routes + intake UI shipped
 - **Phase 4** (BLOCKED): Meta Ads — needs Meta App Review Advanced Access (2–4 weeks)
 - **Phase 5**: Advanced attribution + AI insights engine
+
+## Phase 3 — Client Intelligence (COMPLETE 2026-04-06)
+- `lib/completeness.ts` — completeness score function (field weights CA-locked, do NOT change without approval)
+- `app/api/clients/[id]/intelligence/route.ts` — GET + PATCH (Clerk auth, zod validation, score recalc on save)
+- `app/api/clients/[id]/intelligence/score/route.ts` — GET lightweight score endpoint
+- `components/intelligence/CompletenessScore.tsx` — score widget with progress bar, status badge, follow-up queue
+- `app/(dashboard)/clients/[id]/intelligence/page.tsx` — 5-stage progressive intake form (auto-save on blur)
+- **Completeness launch gate:** 60 points. Smart bidding gate: 80 points + target_cpl set.
+- **Route param:** `[id]` = organization_id from organizations table
+- **CA-LOCKED:** Do NOT change field weights in lib/completeness.ts without CA approval
 
 ## Critical Architecture Rules
 - **HIPAA**: NO Meta Pixel or Google Tag on health pages. Server-side conversion tracking ONLY via Inngest
